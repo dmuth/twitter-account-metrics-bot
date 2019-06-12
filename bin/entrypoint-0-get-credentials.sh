@@ -7,14 +7,16 @@
 # Errors are fatal
 set -e
 
-cd /mnt/bin
+cd /mnt
 
 if test "$DEVEL"
 then
 	echo "# "
-	echo "# Running in development mode."
+	echo "# Container launched in development mode."
 	echo "# "
 	echo "# Your current directiry: $(pwd)"
+	echo "# "
+	echo "# Scripts located in: /mnt/bin/"
 	echo "# "
 	exec /bin/bash
 
@@ -22,10 +24,5 @@ else
 	/mnt/bin/0-get-credentials.py
 
 fi
-
-
-echo "# "
-echo "# To run this script"
-echo "# "
 
 

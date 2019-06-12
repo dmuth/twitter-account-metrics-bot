@@ -15,7 +15,6 @@ docker build . -f bin/Dockerfile-0-get-credentials -t twitter-metrics-get-creden
 
 CMD=""
 CMD_E=""
-CMD_IT=""
 
 if test "${DEVEL}"
 then
@@ -23,9 +22,8 @@ then
 	echo "# Running in development mode..."
 	echo "# "
 	CMD="${CMD} -e DEVEL=${DEVEL}"
-	CMD="${CMD} -it"
 
 fi
 
-docker run ${CMD} -v $(pwd):/mnt twitter-metrics-get-credentials $@
+docker run -it ${CMD} -v $(pwd):/mnt twitter-metrics-get-credentials $@
 
