@@ -3,3 +3,9 @@
 *.swp
 *~
 
+# Steve Jobs
+.DS_Store
+
+# Our database file
+tweets.db
+
