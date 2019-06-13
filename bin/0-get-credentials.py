@@ -69,7 +69,10 @@ def get_input(session, name, input_string):
 	# If the user hit enter, use the default value!
 	#
 	if not value:
-		value = row.value
+		if row:
+			value = row.value
+		else:
+			raise Exception("You must enter a value!")
 
 	#
 	# Save what we did
@@ -114,10 +117,13 @@ def getTwitterAuthData():
 	print("# ")
 
 
-	retval["app_key"] = get_input(session, "app_key", 
+	retval["app_key"] = get_input(session, "twitter_app_key", 
 		"Enter your Consumer API Key here")
-	retval["app_secret"] = get_input(session, "app_secret", 
+	retval["app_secret"] = get_input(session, "twitter_app_secret", 
 		"Enter your Consumer API Secret Key here")
+
+	retval["twitter_username"] = get_input(session, "twitter_username", 
+		"Username you want to get Tweet stats on")
 
 	twitter = twython.Twython(retval["app_key"], retval["app_secret"])
 	auth = twitter.get_authentication_tokens()
@@ -163,11 +169,12 @@ def getTwitterAuthData():
 	#
 	# Remove and save our final oauth tokens
 	#
-	session.query(Config).filter(Config.name == "final_oauth_token").delete()
-	session.query(Config).filter(Config.name == "final_oauth_token_secret").delete()
-	row = Config(name = "final_oauth_token", value = retval["final_oauth_token"])
+	session.query(Config).filter(Config.name == "twitter_final_oauth_token").delete()
+	session.query(Config).filter(Config.name == "twitter_final_oauth_token_secret").delete()
+	row = Config(name = "twitter_final_oauth_token", value = retval["final_oauth_token"])
 	session.add(row)
-	row = Config(name = "final_oauth_token_secret", value = retval["final_oauth_token_secret"])
+	row = Config(name = "twitter_final_oauth_token_secret", value = 
+		retval["final_oauth_token_secret"])
 	session.add(row)
 	session.commit()
 
