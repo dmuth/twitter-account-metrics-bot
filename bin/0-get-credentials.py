@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 # :set softtabstop=8 noexpandtab
+#
+# Get our Twitter credentials
+#
 
 
 import argparse
@@ -15,24 +18,52 @@ import dateutil.parser
 import twython
 
 sys.path.append("lib")
+from tables import create_all, get_session, Config 
+
+
+
+session = get_session()
 
 
 #
-# SQLAlchemy stuff which will eventually be put into an ORM class in a separate file
+# Prompt the user for input and upsert into the data, showing 
+# the default value if it's already in the database.
 #
-from sqlalchemy import create_engine
-from sqlalchemy import Table, Column, Integer, String, MetaData, ForeignKey, Text
+# session - The database session
+# name - The name of the field from the table
+# input_string - Base input string to show the user (default may be filled in)
+#
+def get_input(session, name, input_string):
 
-db = create_engine("sqlite:///tweets.db")
+	#
+	# See if the row exists
+	#
+	row = session.query(Config).filter(Config.name == name).first()
 
-metadata = MetaData()
-users = Table("config", metadata,
-	Column("name", Text, primary_key=True),
-	Column("value", Text)
-	)
+	if row:
+		input_string += " [{}]: ".format(row.value)
+	else:
+		input_string += ": "
 
-metadata.create_all(db)
-conn = db.connect()
+	value = input(input_string)
+
+	#
+	# If the user hit enter, user the default value!
+	#
+	if not value:
+		value = row.value
+
+	#
+	# Save what we did
+	#
+	if not row:
+		row = Config(name = name, value = value)
+	else:
+		row.value = value
+
+	session.add(row)
+	session.commit()
+
 
 
 #

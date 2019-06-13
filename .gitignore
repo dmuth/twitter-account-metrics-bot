@@ -9,3 +9,6 @@
 # Our database file
 tweets.db
 
+__pycache__
+
+
