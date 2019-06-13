@@ -20,8 +20,24 @@ import twython
 sys.path.append("lib")
 from tables import create_all, get_session, Config 
 
+#
+# Parse our arguments
+#
+parser = argparse.ArgumentParser(description = "Get app credentials from Twitter")
+parser.add_argument("--debug", action = "store_true")
+args = parser.parse_args()
 
+#
+# Set up the logger
+#
+if args.debug:
+	logging.basicConfig(level=logging.DEBUG, format='%(asctime)s: %(levelname)s: %(message)s')
+else:
+	logging.basicConfig(level=logging.INFO, format='%(asctime)s: %(levelname)s: %(message)s')
 
+#
+# Connect to the database
+#
 session = get_session()
 
 
@@ -32,6 +48,8 @@ session = get_session()
 # session - The database session
 # name - The name of the field from the table
 # input_string - Base input string to show the user (default may be filled in)
+#
+# Returns the value that the user entered
 #
 def get_input(session, name, input_string):
 
@@ -48,7 +66,7 @@ def get_input(session, name, input_string):
 	value = input(input_string)
 
 	#
-	# If the user hit enter, user the default value!
+	# If the user hit enter, use the default value!
 	#
 	if not value:
 		value = row.value
@@ -64,19 +82,8 @@ def get_input(session, name, input_string):
 	session.add(row)
 	session.commit()
 
+	return(value)
 
-
-#
-# Set up the logger
-#
-logging.basicConfig(level=logging.INFO, format='%(asctime)s: %(levelname)s: %(message)s')
-
-
-#
-# Parse our arguments
-#
-parser = argparse.ArgumentParser(description = "Get app credentials from Twitter")
-args = parser.parse_args()
 
 
 #
@@ -88,6 +95,8 @@ args = parser.parse_args()
 # @return object A SQLite object representing the row
 #
 def getTwitterAuthData():
+
+	retval = {}
 
 	print("# ")
 
@@ -104,14 +113,17 @@ def getTwitterAuthData():
 	print("# ")
 	print("# ")
 
-	app_key = input("Enter your Consumer API Key here: ")
-	app_secret = input("Enter your Consumer API Secret Key here: ")
 
-	twitter = twython.Twython(app_key, app_secret)
+	retval["app_key"] = get_input(session, "app_key", 
+		"Enter your Consumer API Key here")
+	retval["app_secret"] = get_input(session, "app_secret", 
+		"Enter your Consumer API Secret Key here")
+
+	twitter = twython.Twython(retval["app_key"], retval["app_secret"])
 	auth = twitter.get_authentication_tokens()
 
 	auth_url = auth["auth_url"]
-	logger.debug("Auth URL: " + auth_url)
+	logger.info("Auth URL: " + auth_url)
 
 	print("# ")
 	print("# For the next step, you need to an authentication page on Twitter,")
@@ -124,15 +136,15 @@ def getTwitterAuthData():
 	print("# {}".format(auth_url))
 	print("# ")
 
-	#webbrowser.open(auth_url)
 	oauth_verifier = input("Enter Your PIN: ")
 
 	oauth_token = auth['oauth_token']
 	oauth_token_secret = auth['oauth_token_secret']
-	logger.debug("OAUTH Token: " + oauth_token)
-	logger.debug("OAUTH Token Secret: " + oauth_token_secret)
+	logger.info("OAUTH Token: " + oauth_token)
+	logger.info("OAUTH Token Secret: " + oauth_token_secret)
 
-	twitter = twython.Twython(app_key, app_secret, oauth_token, oauth_token_secret)
+	twitter = twython.Twython(retval["app_key"], retval["app_secret"], 
+		oauth_token, oauth_token_secret)
 
 	try:
 		final_step = twitter.get_authorized_tokens(oauth_verifier)
@@ -145,18 +157,24 @@ def getTwitterAuthData():
 		print ("! ")
 		sys.exit(1)
 
-	final_oauth_token = final_step['oauth_token']
-	final_oauth_token_secret = final_step['oauth_token_secret']
-	logger.debug("Final OUATH token: " + final_oauth_token)
-	logger.debug("Final OAUTH token secret: " + final_oauth_token_secret)
+	retval["final_oauth_token"] = final_step['oauth_token']
+	retval["final_oauth_token_secret"] = final_step['oauth_token_secret']
 
-	retval = {
-		"app_key": app_key,
-		"app_secret": app_secret,
-		"final_oauth_token": final_oauth_token,
-		"final_oauth_token_secret": final_oauth_token_secret,
-		"created": int(time.time()),
-		}
+	#
+	# Remove and save our final oauth tokens
+	#
+	session.query(Config).filter(Config.name == "final_oauth_token").delete()
+	session.query(Config).filter(Config.name == "final_oauth_token_secret").delete()
+	row = Config(name = "final_oauth_token", value = retval["final_oauth_token"])
+	session.add(row)
+	row = Config(name = "final_oauth_token_secret", value = retval["final_oauth_token_secret"])
+	session.add(row)
+	session.commit()
+
+	logger.info("Final OUATH token: " + retval["final_oauth_token"])
+	logger.info("Final OAUTH token secret: " + retval["final_oauth_token_secret"])
+
+	retval["created"] = int(time.time())
 
 	return(retval)
 
@@ -181,14 +199,6 @@ def main(args):
 	creds = twitter.verify_credentials()
 	rate_limit = twitter.get_lastfunction_header('x-rate-limit-remaining')
 	logger.info("Rate limit left for verifying credentials: " + rate_limit)
-
-	query = "INSERT INTO config (name, value) VALUES (:name, :value) ON CONFLICT(name) DO UPDATE SET value = :value"
-	conn.execute(query, name = "app_key", value = twitter_data["app_key"])
-	conn.execute(query, name = "app_secret", value = twitter_data["app_secret"])
-	conn.execute(query, name = "final_oauth_token", value = twitter_data["final_oauth_token"])
-	conn.execute(query, name = "final_oauth_token_secret", value = twitter_data["final_oauth_token_secret"])
-
-	logger.info("Write Twitter credentials to database!")
 
 	#
 	# Who am I, again?
