@@ -1,7 +1,7 @@
 
 
 from sqlalchemy import create_engine
-from sqlalchemy import Table, Column, Integer, String, MetaData, ForeignKey, Text
+from sqlalchemy import Table, Column, Integer, String, MetaData, ForeignKey, Text, Date, DateTime
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
@@ -21,6 +21,19 @@ class Config(Base):
 	def __repr__(self):
 		return "<Config(name='{}', value='{}')>".format(
 			self.name, self.value)
+
+class Tweets(Base):
+	__tablename__ = "tweets"
+	
+	id = Column(Integer, primary_key = True)
+	tweet_id = Column(Integer)
+	reply_age = Column(Integer)
+	time_t = Column(Integer)
+	date = Column(DateTime)
+	username = Column(String)
+	text = Column(String)
+	url = Column(Text)
+
 
 #
 # Create our schema
