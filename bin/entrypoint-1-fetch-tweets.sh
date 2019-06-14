@@ -21,7 +21,7 @@ then
 	exec /bin/bash
 
 else
-	/mnt/bin/1-fetch-tweets.py
+	/mnt/bin/1-fetch-tweets.py $@
 
 fi
 
