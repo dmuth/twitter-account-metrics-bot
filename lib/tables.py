@@ -30,9 +30,14 @@ class Tweets(Base):
 	reply_age = Column(Integer)
 	time_t = Column(Integer)
 	date = Column(DateTime)
-	username = Column(String)
-	text = Column(String)
+	username = Column(Text)
+	text = Column(Text)
 	url = Column(Text)
+	reply_tweet_id = Column(Integer)
+	reply_username = Column(Text)
+	reply_time_t = Column(Integer)
+	reply_delay = Column(Integer)
+	reply_url = Column(Text)
 
 
 #

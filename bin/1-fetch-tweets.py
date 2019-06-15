@@ -27,6 +27,7 @@ parser = argparse.ArgumentParser(description = "Download twitter timeline for a 
 parser.add_argument("--debug", action = "store_true")
 parser.add_argument("--num", type = int, help = "How many tweets to fetch in total (set this to a large number on the first run!)", default = 5)
 parser.add_argument("--loop", type = int, help = "Loop after sleeping for N seconds")
+parser.add_argument("--ignore-max-tweet-id", action = "store_true", help = "Used for development.  Set this to ignore the max tweet ID. This will cause all tweets to be fetched.")
 args = parser.parse_args()
 
 #
@@ -93,8 +94,19 @@ def getTweets(twitter, username, count, **kwargs):
 			"time_t": timestamp,
 			"id": tweet_id, 
 			"url": url,
-			"text": tweet
+			"text": tweet,
+			"reply_tweet_id": None,
 			}
+
+		#
+		# If this tweet was a reply, get the original tweet ID.
+		# We'll backfill the details on that tweet after all of our
+		# main user's tweets are fetched (possibly during a future run), 
+		# since Twitter API calls are limited.
+		#
+		if row["in_reply_to_status_id"]:
+			tweet["reply_tweet_id"] = row["in_reply_to_status_id"]
+			tweet["reply_username"] = row["in_reply_to_screen_name"]
 
 		retval["tweets"].append(tweet)
 		retval["count"] += 1
@@ -164,10 +176,16 @@ def getTweetsLoop(twitter, username, in_num_tweets_left, since_id):
 		if "last_id" in result:
 			last_id = result["last_id"]
 
-		for row in result["tweets"]:
-			row = Tweets(username = row["username"], date = row["date"],
-				time_t = row["time_t"], tweet_id = row["id"], text = row["text"],
-				url = row["url"], reply_age = 0)
+		for tweet in result["tweets"]:
+			row = Tweets(username = tweet["username"], date = tweet["date"],
+				time_t = tweet["time_t"], tweet_id = tweet["id"], 
+				text = tweet["text"],
+				url =tweet["url"], reply_age = 0, 
+				reply_tweet_id = tweet["reply_tweet_id"])
+
+			if "reply_username" in tweet:
+				row.reply_username = tweet["reply_username"]
+
 			session.add(row)
 			session.commit()
 
@@ -182,6 +200,72 @@ def getTweetsLoop(twitter, username, in_num_tweets_left, since_id):
 	return(num_tweets_written)
 
 
+#
+# Select our tweets that need backfilling and then do so
+#
+# @param object twitter Our Twitter object
+#
+# @return an integer with the number of tweet reply-to info rows backfilled
+#
+def backfill_tweets(twitter):
+
+	retval = 0
+	rows = session.query(Tweets).filter(Tweets.reply_tweet_id != None).filter(
+		Tweets.reply_time_t == None)
+
+	for row in rows:
+
+		try: 
+			logger.info("Backfilling tweet id=%d" % (row.tweet_id))
+			orig = twitter.show_status(id = row.reply_tweet_id)
+
+			rate_limit = twitter.get_lastfunction_header('x-rate-limit-remaining')
+			logger.info("twitter_rate_limit_show_status_left=" + rate_limit)
+
+			row.reply_time_t = int(dateutil.parser.parse(orig["created_at"]).timestamp())
+			row.reply_username = orig["user"]["screen_name"]
+			row.reply_url = url = "https://twitter.com/%s/status/%s" % (
+				row.reply_username, row.reply_tweet_id)
+			row.reply_age = row.time_t - row.reply_time_t
+
+		except twython.exceptions.TwythonError as e:
+
+			logger.info("Caught this exception: %s" % e)
+
+			if "User has been suspended" in str(e):
+				logger.info("Looks like the original user was suspended, so fudge our data")
+				row.reply_username = "(SUSPENDED_ACCOUNT)"
+
+			elif "you are not authorized to see this status" in str(e):
+				logger.info("Original tweet is by a locked account")
+				row.reply_username = "(ORIGINAL_ACCOUNT_LOCKED)"
+
+			elif "No status found" in str(e):
+				logger.info("Original status not found, so fudging our data here")
+				row.reply_username = "(ORIGINAL_STATUS_NOT_FOUND)"
+			
+			elif "You have been blocked" in str(e):
+				logger.info("Original status author has blocked you")
+				row.reply_username = ("ORIGINAL_STATUS_AUTHOR_BLOCKED_YOU")
+
+			else:
+				raise(e)
+
+			#
+			# Set this so the status isn't queried again, and might
+			# as well make it the same as the post so it doesn't count
+			# as a long delay when doing analytics later.
+			#
+			row.reply_time_t = row.time_t
+
+		session.add(row)
+		session.commit()
+
+		retval += 1
+
+	return(retval)
+
+	
 #
 # Our main function.
 #
@@ -219,6 +303,9 @@ def main(args):
 	row = session.query(func.max(Tweets.tweet_id).label("max")).first()
 	if row:
 		since_id = row.max
+		if args.ignore_max_tweet_id:
+			since_id = None
+
 
 	#
 	# Actually fetch our tweets.
@@ -233,6 +320,14 @@ def main(args):
 		num_tweets_written))
 	logger.info("ok=1")
 
+	print("# ")
+	print("# Now backfilling reply info on any tweets that are replies.")
+	print("# We do this at the end because Twitter has low API limits.")
+	print("# ")
+
+	num_tweets_backfilled = backfill_tweets(twitter)
+	logger.info("total_tweets_backfilled=%d" % num_tweets_backfilled)
+
 	#
 	# Turns out that when this is run as a service in systemd with output redirected, 
 	# it is not flushed regularly, and stopping the service loses the output.  Awesome!
@@ -240,7 +335,6 @@ def main(args):
 	sys.stdout.flush()
 
 # End of main()
-
 
 
 if not args.loop:
