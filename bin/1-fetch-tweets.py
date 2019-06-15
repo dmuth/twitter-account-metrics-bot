@@ -211,7 +211,7 @@ def backfill_tweets(twitter):
 
 	retval = 0
 	rows = session.query(Tweets).filter(Tweets.reply_tweet_id != None).filter(
-		Tweets.reply_time_t == None)
+		Tweets.reply_error == None)
 
 	for row in rows:
 
@@ -234,19 +234,19 @@ def backfill_tweets(twitter):
 
 			if "User has been suspended" in str(e):
 				logger.info("Looks like the original user was suspended, so fudge our data")
-				row.reply_username = "(SUSPENDED_ACCOUNT)"
+				row.reply_error = str(e)
 
 			elif "you are not authorized to see this status" in str(e):
 				logger.info("Original tweet is by a locked account")
-				row.reply_username = "(ORIGINAL_ACCOUNT_LOCKED)"
+				row.reply_error = str(e)
 
 			elif "No status found" in str(e):
 				logger.info("Original status not found, so fudging our data here")
-				row.reply_username = "(ORIGINAL_STATUS_NOT_FOUND)"
+				row.reply_error = str(e)
 			
 			elif "You have been blocked" in str(e):
 				logger.info("Original status author has blocked you")
-				row.reply_username = ("ORIGINAL_STATUS_AUTHOR_BLOCKED_YOU")
+				row.reply_error = str(e)
 
 			else:
 				raise(e)

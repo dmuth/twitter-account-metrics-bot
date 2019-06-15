@@ -34,6 +34,7 @@ class Tweets(Base):
 	text = Column(Text)
 	url = Column(Text)
 	reply_tweet_id = Column(Integer)
+	reply_error = Column(Text)
 	reply_username = Column(Text)
 	reply_time_t = Column(Integer)
 	reply_delay = Column(Integer)
