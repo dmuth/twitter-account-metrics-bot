@@ -210,8 +210,16 @@ def getTweetsLoop(twitter, username, in_num_tweets_left, since_id):
 def backfill_tweets(twitter):
 
 	retval = 0
+	#
+	# Get tweets that:
+	# - Have a reply_tweet_id (were replies to tweets with that ID)
+	# - Don't have a reply error
+	# - and don't have a reply_time_t value
+	#
+	# Those are tweets that we haven't yet tried pulling the originals.
+	#
 	rows = session.query(Tweets).filter(Tweets.reply_tweet_id != None).filter(
-		Tweets.reply_error == None)
+		Tweets.reply_error == None).filter(Tweets.reply_time_t == None)
 
 	for row in rows:
 
