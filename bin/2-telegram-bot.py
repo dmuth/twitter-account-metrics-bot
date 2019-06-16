@@ -108,6 +108,16 @@ def get_tweet_data(username, start_time_t):
 		Tweets.time_t >= start_time_t).filter(
 		Tweets.reply_tweet_id != None).first().cnt
 
+	retval["min_reply_time"] = session.query(func.min(Tweets.reply_age).label("min")).filter(
+		Tweets.time_t >= start_time_t).filter(
+		Tweets.reply_tweet_id != None).filter(
+		Tweets.reply_age != 0).first().min
+
+	retval["max_reply_time"] = session.query(func.max(Tweets.reply_age).label("max")).filter(
+		Tweets.time_t >= start_time_t).filter(
+		Tweets.reply_tweet_id != None).filter(
+		Tweets.reply_age != 0).first().max
+
 	retval["avg_reply_time"] = session.query(func.avg(Tweets.reply_age).label("avg")).filter(
 		Tweets.time_t >= start_time_t).filter(
 		Tweets.reply_tweet_id != None).filter(
