@@ -260,11 +260,12 @@ def backfill_tweets(twitter):
 				raise(e)
 
 			#
-			# Set this so the status isn't queried again, and might
-			# as well make it the same as the post so it doesn't count
-			# as a long delay when doing analytics later.
+			# As a note, we're not touching the reply_time_t here,
+			# where means tweets we replied to that can't be retrieved
+			# won't be included in stats.  It's annoying, but the
+			# upside is that the number of accounts that get suspended,
+			# tweets that get deleted, etc. are relatively low.
 			#
-			row.reply_time_t = row.time_t
 
 		session.add(row)
 		session.commit()
