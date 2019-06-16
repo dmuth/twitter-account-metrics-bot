@@ -14,6 +14,7 @@ import sys
 import time
 
 import dateparser
+import schedule
 from sqlalchemy.sql.expression import func
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
@@ -157,12 +158,10 @@ def get_tweet_data(username, start_time_t):
 
 	return(retval)
 
-
-
-username = get_username()
-logger.info("Reporting on Twitter username: {}".format(username))
-
-while True:
+#
+# Our main entry point.
+#
+def main():
 
 	start_time_t = parse_time(args.since)
 	data = get_tweet_data(username, start_time_t)
@@ -171,8 +170,35 @@ while True:
 	# Send reports to Telegram
 	#bot.send_message(chat_id = chat_id, text = "test message")
 
-	logger.info("Sleeping for {} seconds...".format(args.interval))
-	time.sleep(args.interval)
+
+username = get_username()
+logger.info("Reporting on Twitter username: {}".format(username))
+
+#
+# Schedule main() to run during intervals
+#
+schedule.every(args.interval).seconds.do(main)
+logger.info("Scheduled main() to run every {} seconds, starting first one now...".format(args.interval))
+main()
+
+
+while True:
+
+	logger.info("Waking up in main loop!")
+	schedule.run_pending()
+
+	#
+	# If we have an interval of less than a minute, we're probably developing,
+	# so sleep for only a second.  Otherwise, sleep for a full minute.
+	#
+	if args.interval < 60:
+		sleep_secs = 1
+	else:
+		sleep_secs = 60
+
+	logger.info("Going to sleep for {} seconds...".format(sleep_secs))
+	time.sleep(sleep_secs)
+
 
 
 
