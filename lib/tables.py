@@ -37,7 +37,6 @@ class Tweets(Base):
 	reply_error = Column(Text)
 	reply_username = Column(Text)
 	reply_time_t = Column(Integer)
-	reply_delay = Column(Integer)
 	reply_url = Column(Text)
 
 
