@@ -25,5 +25,9 @@ then
 
 fi
 
-docker run -it ${CMD} -v $(pwd):/mnt twitter-metrics-telegram-bot $@
+DOCKER_ENV="-e TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}"
+DOCKER_ENV="${DOCKER_ENV} -e TELEGRAM_TOKEN=${TELEGRAM_TOKEN}"
+
+
+docker run -it ${CMD}  ${DOCKER_ENV} -v $(pwd):/mnt twitter-metrics-telegram-bot $@
 
