@@ -1,0 +1,35 @@
+#
+# Source this file to set environment variables for Telegram
+#
+
+FILE=${BASH_SOURCE[0]}
+
+
+export TELEGRAM_CHAT_ID=EXAMPLE
+export TELEGRAM_TOKEN=EXAMPLE
+
+if test "$TELEGRAM_CHAT_ID" == "EXAMPLE"
+then
+	echo "! "
+	echo "! Looks like TELEGRAM_CHAT_ID is set to the default value."
+	echo "! "
+	echo "! Please edit ${FILE} to fix that."
+	echo "! "
+
+elif test "$TELEGRAM_TOKEN" == "EXAMPLE"
+then
+	echo "! "
+	echo "! Looks like TELEGRAM_TOKEN is set to the default value."
+	echo "! "
+	echo "! Please edit ${FILE} to fix that."
+	echo "! "
+
+else
+	echo "# "
+	echo "# Set environment variables for TELEGRAM_CHAT_ID and TELEGRAM_TOKEN!"
+	echo "# "
+
+fi
+
+
+
