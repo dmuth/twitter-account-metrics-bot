@@ -25,5 +25,5 @@ then
 
 fi
 
-docker run -it ${CMD} -e "S3=${S3}" -v $(pwd):/mnt twitter-metrics-backup-tweets $@
+docker run -it ${CMD} -e "S3=${S3}" -v $(pwd):/mnt twitter-metrics-backup-tweets "$@"
 
