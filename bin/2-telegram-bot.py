@@ -193,7 +193,7 @@ def main():
 		).format(args.since, **data)
 
 	# Send reports to Telegram
-	logging.info("Sending message to Telegram: {}".format(message))
+	logging.info("Sending message to Telegram: {}".format(message.replace("\n", "  ")))
 	bot.send_message(chat_id = chat_id, text = message)
 	logging.info("Message sent!")
 
