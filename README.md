@@ -21,7 +21,7 @@ An app to get metrics from Twitter accounts and report them to Telegram via a bo
 
 
 
-## Developemnt
+## Development
 
 - To work on a script interactively, there are dev scripts which will spawn a shell in Docker with the script to be found in `/mnt/bin/`:
    - `./bin/dev-0-get-credentials.sh`
