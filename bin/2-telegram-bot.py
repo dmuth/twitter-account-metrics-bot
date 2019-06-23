@@ -27,10 +27,11 @@ import telegram
 # Parse our arguments
 #
 parser = argparse.ArgumentParser(description = "Get statistics for recent tweets and replies from an account.")
-parser.add_argument("--debug", action = "store_true")
+parser.add_argument("--debug", action = "store_true", help = "Debugging output")
 parser.add_argument("--since", type = str, help = "How far back to go in time for each query? Can be a string such as \"one hour ago\", etc. Default: 1 day ago", default = "1 day ago")
-parser.add_argument("--interval", type = int, help = "How many seconds to pause between reports? (Default: 3600)",
-default = 3600)
+parser.add_argument("--interval", type = int, 
+	help = "How many seconds to pause between reports? If set to 60 seconds or less, polling will be once/sec. Otherwise polling will be once/min. (Default: 3600)", 
+	default = 3600)
 args = parser.parse_args()
 
 #
@@ -101,6 +102,8 @@ def get_tweet_data(username, start_time_t):
 
 	retval = {}
 
+	retval["username"] = username 
+
 	retval["num_tweets"] = session.query(func.count(Tweets.tweet_id).label("cnt")).filter(
 		Tweets.time_t >= start_time_t).first().cnt
 
@@ -109,20 +112,33 @@ def get_tweet_data(username, start_time_t):
 		Tweets.time_t >= start_time_t).filter(
 		Tweets.reply_tweet_id != None).first().cnt
 
-	retval["min_reply_time"] = session.query(func.min(Tweets.reply_age).label("min")).filter(
-		Tweets.time_t >= start_time_t).filter(
-		Tweets.reply_tweet_id != None).filter(
-		Tweets.reply_age != 0).first().min
+	retval["min_reply_time"] = "n/a"
+	retval["max_reply_time"] = "n/a"
+	retval["avg_reply_time"] = "n/a"
 
-	retval["max_reply_time"] = session.query(func.max(Tweets.reply_age).label("max")).filter(
-		Tweets.time_t >= start_time_t).filter(
-		Tweets.reply_tweet_id != None).filter(
-		Tweets.reply_age != 0).first().max
+	#
+	# Only make these calculations if we have replies.
+	# 
+	if retval["num_tweets_reply"]:
+		retval["min_reply_time"] = session.query(
+			func.min(Tweets.reply_age).label("min")).filter(
+			Tweets.time_t >= start_time_t).filter(
+			Tweets.reply_tweet_id != None).filter(
+			Tweets.reply_age != 0).first().min
 
-	retval["avg_reply_time"] = session.query(func.avg(Tweets.reply_age).label("avg")).filter(
-		Tweets.time_t >= start_time_t).filter(
-		Tweets.reply_tweet_id != None).filter(
-		Tweets.reply_age != 0).first().avg
+		retval["max_reply_time"] = session.query(
+			func.max(Tweets.reply_age).label("max")).filter(
+			Tweets.time_t >= start_time_t).filter(
+			Tweets.reply_tweet_id != None).filter(
+			Tweets.reply_age != 0).first().max
+
+		retval["avg_reply_time"] = session.query(
+			func.avg(Tweets.reply_age).label("avg")).filter(
+			Tweets.time_t >= start_time_t).filter(
+			Tweets.reply_tweet_id != None).filter(
+			Tweets.reply_age != 0).first().avg
+		retval["avg_reply_time"] = round(retval["avg_reply_time"], 2)
+
 
 	#
 	# Get our median reply time by getting all reply ages in sorted order
@@ -165,10 +181,21 @@ def main():
 
 	start_time_t = parse_time(args.since)
 	data = get_tweet_data(username, start_time_t)
-	print("TWEET DATA", data)
+
+	message = ("Tweet reply for user: {username}\n"
+		+ "Since: {}\n"
+		+ "Num Tweets: {num_tweets}\n"
+		+ "Num Replies: {num_tweets_reply}\n"
+		+ "Min Reply time: {min_reply_time}\n"
+		+ "Max reply time: {max_reply_time}\n"
+		+ "Avg reply time: {avg_reply_time}\n"
+		+ "Median reply time: {median_reply_time}\n"
+		).format(args.since, **data)
 
 	# Send reports to Telegram
-	#bot.send_message(chat_id = chat_id, text = "test message")
+	logging.info("Sending message to Telegram: {}".format(message))
+	bot.send_message(chat_id = chat_id, text = message)
+	logging.info("Message sent!")
 
 
 username = get_username()
@@ -191,7 +218,7 @@ while True:
 	# If we have an interval of less than a minute, we're probably developing,
 	# so sleep for only a second.  Otherwise, sleep for a full minute.
 	#
-	if args.interval < 60:
+	if args.interval <= 60:
 		sleep_secs = 1
 	else:
 		sleep_secs = 60
