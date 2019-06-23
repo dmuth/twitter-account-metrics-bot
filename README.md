@@ -1,7 +1,7 @@
 
-# Twitter Account Metrics
+# Twitter Account Metrics Bot
 
-An app to get metrics from Twitter accounts and report them to Telegram.
+An app to get metrics from Twitter accounts and report them to Telegram via a bot.
 
 
 ## Requirements
