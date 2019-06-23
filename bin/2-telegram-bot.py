@@ -228,7 +228,9 @@ while True:
 	else:
 		sleep_secs = 60
 
-	logger.info("Going to sleep for {} seconds...".format(sleep_secs))
+	logger.info(
+		"Going to sleep for {} seconds, interval is {} seconds.".format(
+		sleep_secs, args.interval))
 	time.sleep(sleep_secs)
 
 
