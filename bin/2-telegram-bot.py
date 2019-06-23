@@ -120,24 +120,28 @@ def get_tweet_data(username, start_time_t):
 	# Only make these calculations if we have replies.
 	# 
 	if retval["num_tweets_reply"]:
-		retval["min_reply_time"] = session.query(
+		print("TEST", start_time_t)
+		retval["min_reply_time_sec"] = session.query(
 			func.min(Tweets.reply_age).label("min")).filter(
 			Tweets.time_t >= start_time_t).filter(
 			Tweets.reply_tweet_id != None).filter(
 			Tweets.reply_age != 0).first().min
+		retval["min_reply_time"] = round(retval["min_reply_time_sec"] / 60, 0)
 
-		retval["max_reply_time"] = session.query(
+		retval["max_reply_time_sec"] = session.query(
 			func.max(Tweets.reply_age).label("max")).filter(
 			Tweets.time_t >= start_time_t).filter(
 			Tweets.reply_tweet_id != None).filter(
 			Tweets.reply_age != 0).first().max
+		retval["max_reply_time"] = round(retval["max_reply_time_sec"] / 60, 0)
 
-		retval["avg_reply_time"] = session.query(
+		retval["avg_reply_time_sec"] = session.query(
 			func.avg(Tweets.reply_age).label("avg")).filter(
 			Tweets.time_t >= start_time_t).filter(
 			Tweets.reply_tweet_id != None).filter(
 			Tweets.reply_age != 0).first().avg
-		retval["avg_reply_time"] = round(retval["avg_reply_time"], 2)
+		retval["avg_reply_time_sec"] = round(retval["avg_reply_time_sec"], 2)
+		retval["avg_reply_time"] = round(retval["avg_reply_time_sec"] / 60, 0)
 
 
 	#
@@ -182,14 +186,15 @@ def main():
 	start_time_t = parse_time(args.since)
 	data = get_tweet_data(username, start_time_t)
 
+	print("TEST", data)
 	message = ("Tweet reply for user: {username}\n"
 		+ "Since: {}\n"
 		+ "Num Tweets: {num_tweets}\n"
 		+ "Num Replies: {num_tweets_reply}\n"
-		+ "Min Reply time: {min_reply_time} sec\n"
-		+ "Max reply time: {max_reply_time} sec\n"
-		+ "Avg reply time: {avg_reply_time} sec\n"
-		+ "Median reply time: {median_reply_time} sec\n"
+		+ "Min Reply time: {min_reply_time} min\n"
+		+ "Max reply time: {max_reply_time} min\n"
+		+ "Avg reply time: {avg_reply_time} min\n"
+		+ "Median reply time: {median_reply_time} min\n"
 		).format(args.since, **data)
 
 	# Send reports to Telegram
