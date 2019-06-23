@@ -186,10 +186,10 @@ def main():
 		+ "Since: {}\n"
 		+ "Num Tweets: {num_tweets}\n"
 		+ "Num Replies: {num_tweets_reply}\n"
-		+ "Min Reply time: {min_reply_time}\n"
-		+ "Max reply time: {max_reply_time}\n"
-		+ "Avg reply time: {avg_reply_time}\n"
-		+ "Median reply time: {median_reply_time}\n"
+		+ "Min Reply time: {min_reply_time} sec\n"
+		+ "Max reply time: {max_reply_time} sec\n"
+		+ "Avg reply time: {avg_reply_time} sec\n"
+		+ "Median reply time: {median_reply_time} sec\n"
 		).format(args.since, **data)
 
 	# Send reports to Telegram
