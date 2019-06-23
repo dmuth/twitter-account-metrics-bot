@@ -187,7 +187,7 @@ def main():
 	data = get_tweet_data(username, start_time_t)
 
 	print("TEST", data)
-	message = ("Tweet reply for user: {username}\n"
+	message = ("Tweet activity for user: {username}\n"
 		+ "Since: {}\n"
 		+ "Num Tweets: {num_tweets}\n"
 		+ "Num Replies: {num_tweets_reply}\n"
