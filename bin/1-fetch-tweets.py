@@ -25,7 +25,7 @@ from tables import create_all, get_session, Config, Tweets
 #
 parser = argparse.ArgumentParser(description = "Download twitter timeline for a user. Their timeline will be traversed in reverse order and pick up where old fetches left off.")
 parser.add_argument("--debug", action = "store_true")
-parser.add_argument("--num", type = int, help = "How many tweets to fetch in total (set this to a large number on the first run!)", default = 5)
+parser.add_argument("--num", type = int, help = "How many tweets to fetch in total (set this to a large number on the first run! Default: 500)", default = 500)
 parser.add_argument("--loop", type = int, help = "Loop after sleeping for N seconds")
 parser.add_argument("--ignore-max-tweet-id", action = "store_true", help = "Used for development.  Set this to ignore the max tweet ID. This will cause all tweets to be fetched.")
 args = parser.parse_args()
