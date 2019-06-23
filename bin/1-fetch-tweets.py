@@ -70,11 +70,11 @@ def getTweets(twitter, username, count, **kwargs):
 	#
 	if ("last_id" in kwargs and kwargs["last_id"]):
 		max_id = kwargs["last_id"] - 1
-		tweets = twitter.get_user_timeline(user_id = username, count = count, max_id = max_id,
+		tweets = twitter.get_user_timeline(screen_name = username, count = count, max_id = max_id,
 			since_id = kwargs["since_id"], include_rts = False)
 
 	else: 
-		tweets = twitter.get_user_timeline(user_id = username, count = count,
+		tweets = twitter.get_user_timeline(screen_name = username, count = count,
 			since_id = kwargs["since_id"], include_rts = False)
 
 	for row in tweets:
@@ -309,7 +309,8 @@ def main(args):
 	# Fetch the max ID in the tweets table, which will be our since_id
 	# 
 	since_id = None
-	row = session.query(func.max(Tweets.tweet_id).label("max")).first()
+	row = session.query(func.max(Tweets.tweet_id).label("max")).filter(
+		Tweets.username == twitter_data["username"]).first()
 	if row:
 		since_id = row.max
 		if args.ignore_max_tweet_id:
