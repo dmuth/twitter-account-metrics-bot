@@ -10,6 +10,11 @@ An app to get metrics from Twitter accounts and report them to Telegram via a bo
 - Go to <a href="https://developer.twitter.com/">https://developer.twitter.com/</a> and create an App.  Note your Consumer API Key and Secret Key.
 
 
+## Screenshots
+
+<a href="./img/askamex-tweets-7-days.png"><img src="./img/askamex-tweets-7-days.png" alt="AskAmex Tweets for 7 days" width="250"/></a> <a href="./img/askamex-tweets-3-days.png"><img src="./img/askamex-tweets-3-days.png" alt="AskAmex Tweets for 3 days" width="250"/></a> <a href="./img/askamex-tweets-6-hours.png"><img src="./img/askamex-tweets-6-hours.png" alt="AskAmex Tweets for 6 hours" width="250"/></a>
+
+
 ## Setup
 
 - Clone this repo to your machine
