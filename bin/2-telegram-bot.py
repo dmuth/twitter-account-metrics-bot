@@ -28,6 +28,7 @@ import telegram
 #
 parser = argparse.ArgumentParser(description = "Get statistics for recent tweets and replies from an account.")
 parser.add_argument("--debug", action = "store_true", help = "Debugging output")
+parser.add_argument("--fake", action = "store_true", help = "Fake mode, don't send actual message to Telegram")
 parser.add_argument("--since", type = str, help = "How far back to go in time for each query? Can be a string such as \"one hour ago\", etc. Default: 1 day ago", default = "1 day ago")
 parser.add_argument("--interval", type = int, 
 	help = "How many seconds to pause between reports? If set to 60 seconds or less, polling will be once/sec. Otherwise polling will be once/min. (Default: 3600)", 
@@ -120,7 +121,6 @@ def get_tweet_data(username, start_time_t):
 	# Only make these calculations if we have replies.
 	# 
 	if retval["num_tweets_reply"]:
-		print("TEST", start_time_t)
 		retval["min_reply_time_sec"] = session.query(
 			func.min(Tweets.reply_age).label("min")).filter(
 			Tweets.time_t >= start_time_t).filter(
@@ -166,7 +166,7 @@ def get_tweet_data(username, start_time_t):
 	if num_rows:
 		if num_rows % 2:
 			index = math.ceil(num_rows / 2) - 1
-			retval["median_reply_time"] = times[index]
+			retval["median_reply_time_sec"] = times[index]
 
 		else:
 			index1 = int(num_rows / 2 - 1)
@@ -174,7 +174,9 @@ def get_tweet_data(username, start_time_t):
 			val1 = times[index1]
 			val2 = times[index2]
 			avg = (val1 + val2) / 2
-			retval["median_reply_time"] = avg
+			retval["median_reply_time_sec"] = avg
+
+		retval["median_reply_time"] = round(retval["median_reply_time_sec"] / 60, 0)
 
 	return(retval)
 
@@ -186,7 +188,6 @@ def main():
 	start_time_t = parse_time(args.since)
 	data = get_tweet_data(username, start_time_t)
 
-	print("TEST", data)
 	message = ("Tweet activity for user: {username}\n"
 		+ "Since: {}\n"
 		+ "Num Tweets: {num_tweets}\n"
@@ -199,7 +200,10 @@ def main():
 
 	# Send reports to Telegram
 	logging.info("Sending message to Telegram: {}".format(message.replace("\n", "  ")))
-	bot.send_message(chat_id = chat_id, text = message)
+	if not args.fake:
+		bot.send_message(chat_id = chat_id, text = message)
+	else:
+		logging.info("--fake was specified so we really didn't send that message.")
 	logging.info("Message sent!")
 
 
