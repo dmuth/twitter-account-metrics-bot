@@ -10,6 +10,7 @@ import logging as logger
 import logging.config
 import sys
 import time
+import traceback
 import webbrowser
 
 import dateutil.parser
@@ -347,12 +348,22 @@ def main(args):
 # End of main()
 
 
+
 if not args.loop:
-	main(args)
+	try:
+		main(args)
+	except Exception as e:
+		traceback.print_exc()
+		sys.exit(1)
 
 else:
 	while True:
-		main(args)
+		try:
+			main(args)
+		except Exception as e:
+			traceback.print_exc()
+
+
 		logger.info("Sleeping for %d seconds..." % args.loop)
 		time.sleep(args.loop)
 		logger.info("Waking up!")
