@@ -96,12 +96,13 @@ def get_username():
 #
 # Get stats for tweets that were replied to.
 #
-def getReplyStats(start_time_t):
+def getReplyStats(username, start_time_t):
 
 	retval = {}
 
 	retval["min_reply_time_sec"] = session.query(
 		func.min(Tweets.reply_age).label("min")).filter(
+		Tweets.username == username).filter(
 		Tweets.time_t >= start_time_t).filter(
 		Tweets.reply_tweet_id != None).filter(
 		Tweets.reply_age != 0).first().min
@@ -109,6 +110,7 @@ def getReplyStats(start_time_t):
 
 	retval["max_reply_time_sec"] = session.query(
 		func.max(Tweets.reply_age).label("max")).filter(
+		Tweets.username == username).filter(
 		Tweets.time_t >= start_time_t).filter(
 		Tweets.reply_tweet_id != None).filter(
 		Tweets.reply_age != 0).first().max
@@ -116,6 +118,7 @@ def getReplyStats(start_time_t):
 
 	retval["avg_reply_time_sec"] = session.query(
 		func.avg(Tweets.reply_age).label("avg")).filter(
+		Tweets.username == username).filter(
 		Tweets.time_t >= start_time_t).filter(
 		Tweets.reply_tweet_id != None).filter(
 		Tweets.reply_age != 0).first().avg
@@ -140,6 +143,7 @@ def getReplyStatsMedian(start_time_t, retval):
 	# and then 
 	#
 	rows = session.query(Tweets).filter(
+		Tweets.username == username).filter(
 		Tweets.time_t >= start_time_t).filter(
 		Tweets.reply_tweet_id != None).filter(
 		Tweets.reply_age != 0).order_by(Tweets.reply_age)
@@ -183,15 +187,21 @@ def get_tweet_data(username, start_time_t):
 	retval["username"] = username 
 
 	retval["num_tweets"] = session.query(func.count(Tweets.tweet_id).label("cnt")).filter(
+		Tweets.username == username).filter(
 		Tweets.time_t >= start_time_t).first().cnt
 
 	retval["num_tweets_reply"] = session.query(func.count(Tweets.tweet_id
 		).label("cnt")).filter(
+		Tweets.username == username).filter(
 		Tweets.time_t >= start_time_t).filter(
 		Tweets.reply_tweet_id != None).first().cnt
 
+	retval["last_tweet_date"] = session.query(Tweets).filter(
+		Tweets.username == username).order_by(
+		Tweets.tweet_id.desc()).first().date
+
 	if retval["num_tweets_reply"]:
-		reply_stats = getReplyStats(start_time_t)
+		reply_stats = getReplyStats(username, start_time_t)
 		retval = { **retval, **reply_stats }
 
 	return(retval)
@@ -216,12 +226,13 @@ def main():
 			"Min Reply time: {min_reply_time} min\n"
 			+ "Max reply time: {max_reply_time} min\n"
 			+ "Avg reply time: {avg_reply_time} min\n"
-			+ "Median reply time: {median_reply_time} min\n"
+			+ "Median reply time: {median_reply_time} min"
 			).format(args.since, **data)
 
 	else:
 		message += "(No reply data to include in this report)"
 
+	message += "\nLast Tweet: {} UTC".format(data["last_tweet_date"])
 
 	# Send reports to Telegram
 	logging.info("Sending message to Telegram: {}".format(message.replace("\n", "  ")))
@@ -233,6 +244,7 @@ def main():
 
 
 username = get_username()
+#username = "dmuth" # Debugging
 logger.info("Reporting on Twitter username: {}".format(username))
 
 #
