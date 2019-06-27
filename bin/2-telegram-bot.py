@@ -224,7 +224,7 @@ def main():
 	if data["num_tweets_reply"]:
 		message += (
 			"Min Reply time: {min_reply_time} min\n"
-			+ "Max reply time: {max_reply_time} min\n"
+			#+ "Max reply time: {max_reply_time} min\n"
 			+ "Avg reply time: {avg_reply_time} min\n"
 			+ "Median reply time: {median_reply_time} min"
 			).format(args.since, **data)
