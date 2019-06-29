@@ -3,7 +3,7 @@
 
 An app to get metrics from Twitter accounts and report them to Telegram via a bot.
 
-<img src="./img/statistics.png" width="250" align="right" />
+<img src="./img/statistics.png" width="150" align="right" />
 
 
 ## Requirements
