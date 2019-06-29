@@ -3,6 +3,8 @@
 
 An app to get metrics from Twitter accounts and report them to Telegram via a bot.
 
+<img src="./img/statistics.png" width="250" align="right" />
+
 
 ## Requirements
 
@@ -23,7 +25,6 @@ An app to get metrics from Twitter accounts and report them to Telegram via a bo
 - Copy `docker-compose.yml.example` to `docker-compose.yml` and enter in your Telegram Token and Chat ID.
 - Run `./bin/run-1-fetch-tweets.sh --num 5000` to fetch as many tweets as possible.  This will prime the database, as future runs involve 
 - Now run `docker-compose up -d` and tweets will start being downloaded with stats being written to the Telegram Channel of your user.  This is useful for monitoring activity on organization social media accounts.
-
 
 
 ## Development
@@ -54,7 +55,7 @@ From <a href="https://stackoverflow.com/a/45577773/196073">https://stackoverflow
 - <a href="https://www.sqlite.org/index.html">SQLite</a> - Used for data storage.
 - <a href="https://www.sqlalchemy.org/">SQLAlchemy</a> - This is my first project with SQLAlchemy, and it made tasks such as database schema maintenance and interacting with the database way easier to do!
 - <a href="https://github.com/python-telegram-bot/python-telegram-bot">python-telegram-bot</a> - I use this module for connecting to Telegram, and it too makes my life much easier.
-
+- Icons made by <a href="https://www.freepik.com/" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/"  title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a>
 
 # Author
 
