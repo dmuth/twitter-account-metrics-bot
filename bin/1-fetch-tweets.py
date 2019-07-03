@@ -222,6 +222,8 @@ def backfill_tweets(twitter):
 	rows = session.query(Tweets).filter(Tweets.reply_tweet_id != None).filter(
 		Tweets.reply_error == None).filter(Tweets.reply_time_t == None)
 
+	logger.info("tweets_to_backfill={}".format(rows.count()))
+
 	for row in rows:
 
 		try: 
