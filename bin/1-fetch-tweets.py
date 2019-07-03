@@ -257,6 +257,10 @@ def backfill_tweets(twitter):
 				logger.info("Original status author has blocked you")
 				row.reply_error = str(e)
 
+			elif "Twitter API returned a 404" in str(e):
+				logger.info("Twitter's API returned a 404")
+				row.reply_error = str(e)
+
 			else:
 				raise(e)
 
