@@ -1,5 +1,7 @@
 
 
+import json
+
 from sqlalchemy import create_engine
 from sqlalchemy import Table, Column, Integer, String, MetaData, ForeignKey, Text, Date, DateTime
 from sqlalchemy.ext.declarative import declarative_base
@@ -38,6 +40,34 @@ class Tweets(Base):
 	reply_username = Column(Text)
 	reply_time_t = Column(Integer)
 	reply_url = Column(Text)
+
+
+	def __repr__(self):
+		return "<Tweets(id='{}', tweet_id='{}')>".format(
+			self.id, self.tweet_id)
+
+
+	#
+	# Return the current row as JSON formated.
+	#
+	def json(self):
+
+		retval = {
+			"date": str(self.date),
+			"tweet_id": self.tweet_id,
+			"reply_age": self.reply_age,
+			"time_t": self.time_t,
+			"username": self.username,
+			"text": self.text,
+			"url": self.url,
+			"reply_tweet_id": self.reply_tweet_id,
+			"reply_error": self.reply_error,
+			"reply_username": self.reply_username,
+			"reply_time_t": self.reply_time_t,
+			"reply_url": self.reply_url
+			}
+
+		return(json.dumps(retval))
 
 
 #
