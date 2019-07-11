@@ -20,6 +20,10 @@ then
 	echo "# "
 	exec /bin/bash
 
+elif test "$1" == "export-to-json"
+then
+	/mnt/bin/1-export-to-json.py $@
+
 else
 	/mnt/bin/1-fetch-tweets.py $@
 

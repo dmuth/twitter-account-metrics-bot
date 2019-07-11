@@ -27,6 +27,11 @@ An app to get metrics from Twitter accounts and report them to Telegram via a bo
 - Now run `docker-compose up -d` and tweets will start being downloaded with stats being written to the Telegram Channel of your user.  This is useful for monitoring activity on organization social media accounts.
 
 
+## Exporting Saved Tweets
+
+The command ` ./bin/run-1-export-to-json.sh` will dump all tweets to `tweets.json`.
+
+
 ## Development
 
 - To work on a script interactively, there are dev scripts which will spawn a shell in Docker with the script to be found in `/mnt/bin/`:
