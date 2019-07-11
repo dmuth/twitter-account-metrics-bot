@@ -37,7 +37,7 @@ session = get_session()
 #
 rows = session.query(Tweets).all()
 for row in rows:
-	print(row.json()) # Debugging
+	#print(row.json()) # Debugging
 	f.write(row.json() + "\n")
 
 cnt = session.query(Tweets).count()
