@@ -10,20 +10,6 @@ from sqlalchemy.orm import sessionmaker
 Base = declarative_base()
 
 
-#
-# Our Config table
-#
-class Config(Base):
-
-	__tablename__ = "config"
-
-	name = Column(String, primary_key = True)
-	value = Column(String)
-
-	def __repr__(self):
-		return "<Config(name='{}', value='{}')>".format(
-			self.name, self.value)
-
 class Tweets(Base):
 	__tablename__ = "tweets"
 	

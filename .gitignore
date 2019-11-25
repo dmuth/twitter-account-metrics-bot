@@ -19,3 +19,5 @@ aws-credentials.txt
 bin/dev-set-telegram-env.sh
 docker-compose.yml
 
+config.ini
+
