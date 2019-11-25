@@ -76,3 +76,25 @@ class Config:
 		return(value)
 
 
+	#
+	# Return the value of a specific key.
+	#
+	def get(self, key):
+		return(self.config.get("settings", key))
+
+
+	#
+	# Return all items with their values in a section as a dictionary.
+	#
+	def get_items(self):
+
+		retval = {}
+
+		for k, v in self.config.items("settings"):
+			retval[k] = v
+
+		return(retval)
+
+
+
+
