@@ -19,7 +19,8 @@ from sqlalchemy.sql.expression import func
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
 sys.path.append("lib")
-from tables import create_all, get_session, Config, Tweets
+from tables import create_all, get_session, Tweets
+import config as configParser
 import telegram
 
 
@@ -29,6 +30,8 @@ import telegram
 parser = argparse.ArgumentParser(description = "Get statistics for recent tweets and replies from an account.")
 parser.add_argument("--debug", action = "store_true", help = "Debugging output")
 parser.add_argument("--fake", action = "store_true", help = "Fake mode, don't send actual message to Telegram")
+parser.add_argument("--bot-token", help = "The API token for the Telegram Bot. Get from @botfather.")
+parser.add_argument("--chat-id", help = "The ID of the Telegram chat to post to.")
 parser.add_argument("--since", type = str, help = "How far back to go in time for each query? Can be a string such as \"one hour ago\", etc. Default: 1 day ago", default = "1 day ago")
 parser.add_argument("--interval", type = int, 
 	help = "How many seconds to pause between reports? If set to 60 seconds or less, polling will be once/sec. Otherwise polling will be once/min. (Default: 3600)", 
@@ -49,8 +52,8 @@ logger.info("Args: {}".format(args))
 # Set up our Telegram bot
 #
 logger.info("Setting up our Telegram bot...")
-token = os.environ["TELEGRAM_TOKEN"]
-chat_id = os.environ["TELEGRAM_CHAT_ID"]
+token = args.bot_token
+chat_id = args.chat_id
 bot = telegram.Bot(token)
 
 
@@ -89,8 +92,13 @@ def parse_time(since):
 # Return the username that we're looking for tweets from
 #
 def get_username():
-	row = session.query(Config).filter(Config.name == "twitter_username").one()
-	return(row.value)
+	ini_file = os.path.dirname(os.path.realpath(__file__)) + "/../config.ini"
+	logger.info("Ini file path: {}".format(ini_file))
+
+	config = configParser.Config(ini_file)
+	user = config.get("twitter_username")
+
+	return(user)
 
 
 #
