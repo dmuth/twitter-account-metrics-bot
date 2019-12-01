@@ -10,7 +10,7 @@ RUN apk add tzdata
 RUN mkdir /root/.aws/
 
 
-COPY bin/entrypoint-2-backup-tweets.sh /entrypoint.sh
+COPY bin/entrypoint.sh /entrypoint.sh
 
 ENTRYPOINT ["/entrypoint.sh"]
 

@@ -6,7 +6,7 @@ RUN pip3 install --upgrade pip
 COPY bin/requirements-telegram.txt /requirements-telegram.txt
 RUN pip3 install -r /requirements-telegram.txt
 
-COPY bin/entrypoint-2-telegram-bot.sh /entrypoint.sh
+COPY bin/entrypoint.sh /entrypoint.sh
 
 ENTRYPOINT ["/entrypoint.sh"]
 

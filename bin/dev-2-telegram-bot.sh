@@ -8,6 +8,6 @@ set -e
 
 pushd $(dirname $0)/.. > /dev/null
 
-DEVEL=1 ./bin/run-2-telegram-bot.sh $@
+./bin/run-2-telegram-bot.sh bash
 
 

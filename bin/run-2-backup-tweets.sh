@@ -13,17 +13,15 @@ echo "# Building container..."
 echo "# "
 docker build . -f bin/Dockerfile-2-backup-tweets -t twitter-metrics-backup-tweets
 
-CMD=""
-CMD_E=""
-
-if test "${DEVEL}"
+ARGS="$@"
+if test "$1" == "bash"
 then
-	echo "# "
-	echo "# Running in development mode..."
-	echo "# "
-	CMD="${CMD} -e DEVEL=${DEVEL}"
+	ARGS="bash"
+
+else
+	ARGS="2-backup-tweets $@"
 
 fi
 
-docker run -it ${CMD} -e "S3=${S3}" -v $(pwd):/mnt twitter-metrics-backup-tweets "$@"
+docker run -it -e "S3=${S3}" -v $(pwd):/mnt twitter-metrics-backup-tweets ${ARGS}
 

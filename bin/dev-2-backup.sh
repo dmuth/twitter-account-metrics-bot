@@ -9,6 +9,6 @@ set -e
 pushd $(dirname $0)/.. > /dev/null
 
 export S3=s3://dmuth-furry-tweets/users/dev/
-DEVEL=1 ./bin/run-2-backup-tweets.sh $@
+./bin/run-2-backup-tweets.sh bash
 
 

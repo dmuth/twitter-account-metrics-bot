@@ -8,6 +8,6 @@ set -e
 
 pushd $(dirname $0)/.. > /dev/null
 
-DEVEL=1 ./bin/run-1-export-to-json.sh $@
+./bin/run-1-export-to-json.sh bash
 
 
