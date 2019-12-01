@@ -16,10 +16,11 @@ then
 	echo "# "
 	echo "# Container launched in development mode."
 	echo "# "
-	echo "# Your current directiry: $(pwd)"
+	echo "# Your current directory: $(pwd)"
 	echo "# "
 	echo "# Scripts located in: /mnt/bin/"
 	echo "# "
+	ls -l /mnt/bin/[0-9]*
 	exec /bin/bash
 
 elif test "$1" == "0-get-credentials"
