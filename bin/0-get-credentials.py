@@ -16,6 +16,7 @@ import time
 import webbrowser
 
 import boto3
+import telegram
 import twython
 
 
@@ -191,6 +192,36 @@ def configureAWS(config):
 		logger.info("AWS connectivity successful! (Found {} S3 buckets)".format(
 			len(response["Buckets"])))
 
+#
+# Optionally configure and verify Telegram credentials
+#
+def configureTelegram(config):
+
+	verify = False
+	choice = config.input_default_yes("Configure Telegram?")
+
+	if choice:
+		config.get_input("telegram_bot_token", "Enter your Telegram Bot token")
+		config.get_input("telegram_chat_id", "Enter your Telegram chat ID")
+		config.write_config()
+		verify = True
+
+	if not verify:
+		verify = config.input_default_yes("Verify Telegram credentials?")
+
+	if not verify:
+		return
+
+	bot = telegram.Bot(config.get("telegram_bot_token"))
+
+	try:
+		logger.info("Testing access to Telegram...")
+		update_id = bot.get_updates()[0].update_id
+	except IndexError:
+		pass
+
+	logger.info("We can access Telegram!")
+
 
 #
 # Our main function.
@@ -204,7 +235,7 @@ def main(args):
 
 	configureTwitter(config)
 	configureAWS(config)
-	#configureTelegram(config)
+	configureTelegram(config)
 
 
 main(args)
