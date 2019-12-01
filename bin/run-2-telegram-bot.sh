@@ -11,7 +11,7 @@ pushd $(dirname $0)/.. > /dev/null
 echo "# "
 echo "# Building container..."
 echo "# "
-docker build . -f bin/Dockerfile-2-telegram-bot -t twitter-metrics-telegram-bot
+docker build . -f bin/Dockerfile-telegram -t twitter-metrics-telegram-bot
 
 DOCKER_ENV="-e TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}"
 DOCKER_ENV="${DOCKER_ENV} -e TELEGRAM_TOKEN=${TELEGRAM_TOKEN}"

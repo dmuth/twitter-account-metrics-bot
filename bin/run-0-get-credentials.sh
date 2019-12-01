@@ -11,7 +11,7 @@ pushd $(dirname $0)/.. > /dev/null
 echo "# "
 echo "# Building container..."
 echo "# "
-docker build . -f bin/Dockerfile-0-get-credentials -t twitter-metrics-get-credentials
+docker build . -f bin/Dockerfile-twitter -t twitter-metrics
 
 ARGS="$@"
 if test "$1" == "bash"
@@ -23,5 +23,5 @@ else
 
 fi
 
-docker run -it -v $(pwd):/mnt twitter-metrics-get-credentials ${ARGS}
+docker run -it -v $(pwd):/mnt twitter-metrics ${ARGS}
 
