@@ -15,6 +15,7 @@ import sys
 import time
 import webbrowser
 
+import boto3
 import twython
 
 
@@ -159,6 +160,39 @@ def configureTwitter(config):
 
 
 #
+# Optionally configure and verify AWS credentials.
+#
+def configureAWS(config):
+
+	verify = False
+	choice = config.input_default_yes("Configure AWS?")
+
+	if choice:
+		config.get_input("aws_access_key_id", "Enter your AWS Access Key ID")
+		config.get_input("aws_secret_access_key", "Enter your AWS Secret Access Key")
+		config.write_config()
+		verify = True
+
+	if not verify:
+		verify = config.input_default_yes("Verify AWS credentials?")
+
+	if not verify:
+		return
+
+	logger.info("Verifying AWS credentials...")
+
+	s3 = boto3.client("s3",
+		aws_access_key_id = config.get("aws_access_key_id"),
+		aws_secret_access_key = config.get("aws_secret_access_key")
+		)
+	response = s3.list_buckets()
+
+	if response["ResponseMetadata"]:
+		logger.info("AWS connectivity successful! (Found {} S3 buckets)".format(
+			len(response["Buckets"])))
+
+
+#
 # Our main function.
 #
 def main(args):
@@ -169,6 +203,8 @@ def main(args):
 	config = configParser.Config(ini_file)
 
 	configureTwitter(config)
+	configureAWS(config)
+	#configureTelegram(config)
 
 
 main(args)
