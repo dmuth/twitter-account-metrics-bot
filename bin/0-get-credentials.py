@@ -127,7 +127,7 @@ def getTwitterAuthData(config):
 def configureTwitter(config):
 
 	verify = False
-	choice = config.input_default_yes("Configure Twitter app?")
+	choice = config.input_default_yes("Configure Twitter app? (Mandatory)")
 
 	if choice:
 		twitter_data = getTwitterAuthData(config)
@@ -140,9 +140,6 @@ def configureTwitter(config):
 	if not verify:
 		return
 
-	#
-	# Verify our Twitter credentials
-	#
 	logger.info("Verifying Twitter credentials...")
 	twitter = twython.Twython(config.get("twitter_app_key"), 
 		config.get("twitter_app_secret"), 
@@ -166,7 +163,7 @@ def configureTwitter(config):
 def configureAWS(config):
 
 	verify = False
-	choice = config.input_default_yes("Configure AWS?")
+	choice = config.input_default_yes("Configure AWS? (optional, used for backups)")
 
 	if choice:
 		config.get_input("aws_access_key_id", "Enter your AWS Access Key ID")
@@ -198,7 +195,7 @@ def configureAWS(config):
 def configureTelegram(config):
 
 	verify = False
-	choice = config.input_default_yes("Configure Telegram?")
+	choice = config.input_default_yes("Configure Telegram? (optional, used for reporting)")
 
 	if choice:
 		config.get_input("telegram_bot_token", "Enter your Telegram Bot token")
