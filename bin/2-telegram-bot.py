@@ -56,6 +56,14 @@ token = args.bot_token
 chat_id = args.chat_id
 bot = telegram.Bot(token)
 
+try:
+	logger.info("Testing access to Telegram...")
+	update_id = bot.get_updates()[0].update_id
+except IndexError:
+	pass
+
+logger.info("We can access Telegram!")
+
 
 #
 # Connect to the database
