@@ -6,16 +6,27 @@
 # Errors are fatal
 set -e
 
-LOOP_SECONDS=${LOOP_SECONDS:=900}
-NUM_TO_KEEP=${NUM_TO_KEEP:=20}
+NUM_TO_KEEP=20
+LOOP_SECONDS=900
 
-
-if test ! "$S3"
+if test ! "$1"
 then
 	echo "! "
-	echo "! Environment variable \"S3\" needs to be set with the S3 bucket to backup to!"
+	echo "! Syntax: $0 s3_bucket [ num_backups_to_keep ] [ seconds_to_wait_between_loops ]"
 	echo "! "
 	exit 1
+fi
+
+S3=$1
+
+if test "$2"
+then
+	NUM_TO_KEEP=$2
+fi
+
+if test "$3"
+then
+	LOOP_SECONDS=$3
 fi
 
 
@@ -48,9 +59,9 @@ echo "# "
 echo "# Starting Tweet backup script"
 echo "# "
 echo "# Backing up to S3 location: ${S3}"
+echo "# Keeping this many backups: ${NUM_TO_KEEP}"
 echo "# Looping this many seconds: ${LOOP_SECONDS}"
 echo "# "
-
 
 while true
 do
@@ -90,6 +101,9 @@ do
 	# Put this output in a date format that Splunk will recognize
 	#
 	echo "$(date "+%Y-%m-%d %H:%M:%S"),$(date +%s%N | cut -b14-16) ok=1 num_to_keep=${NUM_TO_KEEP} old_backups_deleted=${COUNT_DELETED}"
+
+	echo "# Current contents of S3 bucket ${S3} "
+	aws s3 ls $S3
 
 	echo "Sleeping for ${LOOP_SECONDS} seconds..."
 	sleep ${LOOP_SECONDS}
