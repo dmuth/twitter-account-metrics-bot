@@ -83,6 +83,16 @@ else
 		echo "! "
 	fi
 
+	echo "! Please specify one of the following: "
+	echo "! "
+	echo "! - 0-get-credentials"
+	echo "! - 1-fetch-tweets"
+	echo "! - 1-export-to-json"
+	echo "! - 2-telegram-bot"
+	echo "! - 2-backup-tweets"
+	echo "! - bash (for development)"
+	echo "! "
+
 	exit 1
 
 fi

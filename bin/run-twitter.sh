@@ -19,9 +19,9 @@ then
 	ARGS="bash"
 
 else
-	ARGS="0-get-credentials $@"
+	ARGS="$@"
 
 fi
 
-docker run -it -v $(pwd):/mnt twitter-metrics ${ARGS}
+docker run -it -e "S3=${S3}" -v $(pwd):/mnt twitter-metrics ${ARGS}
 

@@ -8,7 +8,6 @@ set -e
 
 pushd $(dirname $0)/.. > /dev/null
 
-export S3=s3://dmuth-furry-tweets/users/dev/
-./bin/run-2-backup-tweets.sh bash
+./bin/run-telegram.sh bash
 
 

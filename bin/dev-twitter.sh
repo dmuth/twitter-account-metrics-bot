@@ -8,6 +8,5 @@ set -e
 
 pushd $(dirname $0)/.. > /dev/null
 
-./bin/run-1-export-to-json.sh bash
-
+./bin/run-twitter.sh bash
 
