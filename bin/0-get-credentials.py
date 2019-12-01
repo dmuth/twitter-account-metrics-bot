@@ -114,10 +114,48 @@ def getTwitterAuthData(config):
 	logger.info("Final OUATH token: " + retval["final_oauth_token"])
 	logger.info("Final OAUTH token secret: " + retval["final_oauth_token_secret"])
 
-	retval["created"] = int(time.time())
+	retval["twitter_created"] = int(time.time())
 
 	return(retval)
 
+
+#
+# Optionally configure and verify Twitter credentials
+#
+def configureTwitter(config):
+
+	verify = False
+	choice = config.input_default_yes("Configure Twitter app?")
+
+	if choice:
+		twitter_data = getTwitterAuthData(config)
+		config.write_config()
+		verify = True
+
+	if not verify:
+		verify = config.input_default_yes("Verify Twitter credentials?")
+
+	if not verify:
+		return
+
+	#
+	# Verify our Twitter credentials
+	#
+	logger.info("Verifying Twitter credentials...")
+	twitter = twython.Twython(config.get("twitter_app_key"), 
+		config.get("twitter_app_secret"), 
+		config.get("final_oauth_token"), 
+		config.get("final_oauth_token_secret"))
+
+	creds = twitter.verify_credentials()
+	rate_limit = twitter.get_lastfunction_header('x-rate-limit-remaining')
+	logger.info("Rate limit left for verifying credentials: " + rate_limit)
+
+	#
+	# Who am I, again?
+	#
+	screen_name = creds["screen_name"]
+	logger.info("My screen name is: " + screen_name)
 
 
 #
@@ -130,28 +168,7 @@ def main(args):
 
 	config = configParser.Config(ini_file)
 
-	twitter_data = getTwitterAuthData(config)
-
-	config.write_config()
-
-
-	#
-	# Verify our Twitter credentials
-	#
-	twitter = twython.Twython(twitter_data["twitter_app_key"], 
-		twitter_data["twitter_app_secret"], 
-		twitter_data["final_oauth_token"], 
-		twitter_data["final_oauth_token_secret"])
-
-	creds = twitter.verify_credentials()
-	rate_limit = twitter.get_lastfunction_header('x-rate-limit-remaining')
-	logger.info("Rate limit left for verifying credentials: " + rate_limit)
-
-	#
-	# Who am I, again?
-	#
-	screen_name = creds["screen_name"]
-	logger.info("My screen name is: " + screen_name)
+	configureTwitter(config)
 
 
 main(args)

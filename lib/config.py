@@ -96,5 +96,33 @@ class Config:
 		return(retval)
 
 
+	#
+	# Prompt a user to enter an input string, with a default value if they just hit enter
+	#
+	def input_default(self, string, default):
+
+		retval = input(string + " ")
+		if not retval:
+			retval = default
+
+		return(retval)
+
+
+	#
+	# This function prints the user for input using input_default, and will check the
+	# result to see if the user entered "y" or not.  
+	#
+	# A boolean is retuned.  True for "y", otherwise FAlse.
+	#
+	def input_default_yes(self, string):
+
+		choice = self.input_default(string + " [Y/n]", "y")
+
+		if choice[0] == "Y" or choice[0] =="y":
+			return(True)
+
+		return(False)
+
+
 
 
