@@ -6,7 +6,7 @@ services:
   1-fetch-tweets:
     build:
       context: .
-      dockerfile: "bin/Dockerfile-1-fetch-tweets"
+      dockerfile: "bin/Dockerfile-twitter"
     restart: "always"
     privileged: true
     volumes:
@@ -16,7 +16,7 @@ services:
   2-telegram-bot:
     build:
       context: .
-      dockerfile: "bin/Dockerfile-2-telegram-bot"
+      dockerfile: "bin/Dockerfile-telegram"
     restart: "always"
     privileged: true
     volumes:
@@ -38,7 +38,7 @@ services:
   2-backup-tweets:
     build:
       context: .
-      dockerfile: "bin/Dockerfile-2-backup-tweets"
+      dockerfile: "bin/Dockerfile-twitter"
     restart: "always"
     privileged: true
     volumes:
