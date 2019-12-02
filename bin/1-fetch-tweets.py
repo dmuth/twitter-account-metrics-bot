@@ -280,7 +280,7 @@ def backfill_tweets(twitter):
 def verify_twitter_credentials(config):
 
 	twitter = twython.Twython(config.get("twitter_app_key"), config.get("twitter_app_secret"),
-		config.get("final_oauth_token"), config.get("final_oauth_token_secret"))
+		config.get("twitter_final_oauth_token"), config.get("twitter_final_oauth_token_secret"))
 
 	creds = twitter.verify_credentials()
 	rate_limit = twitter.get_lastfunction_header('x-rate-limit-remaining')
