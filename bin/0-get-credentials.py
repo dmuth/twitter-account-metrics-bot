@@ -264,9 +264,6 @@ def main(args):
 
 	config = configParser.Config(ini_file)
 
-# TEST
-	configureAWS(config)
-
 	configureTwitter(config)
 	configureAWS(config)
 	configureTelegram(config)
