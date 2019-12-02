@@ -30,8 +30,6 @@ import telegram
 parser = argparse.ArgumentParser(description = "Get statistics for recent tweets and replies from an account.")
 parser.add_argument("--debug", action = "store_true", help = "Debugging output")
 parser.add_argument("--fake", action = "store_true", help = "Fake mode, don't send actual message to Telegram")
-parser.add_argument("--bot-token", help = "The API token for the Telegram Bot. Get from @botfather.")
-parser.add_argument("--chat-id", help = "The ID of the Telegram chat to post to.")
 parser.add_argument("--since", type = str, help = "How far back to go in time for each query? Can be a string such as \"one hour ago\", etc. Default: 1 day ago", default = "1 day ago")
 parser.add_argument("--interval", type = int, 
 	help = "How many seconds to pause between reports? If set to 60 seconds or less, polling will be once/sec. Otherwise polling will be once/min. (Default: 3600)", 
@@ -48,12 +46,20 @@ else:
 
 logger.info("Args: {}".format(args))
 
+
+#
+# Load our config.ini file
+#
+ini_file = os.path.dirname(os.path.realpath(__file__)) + "/../config.ini"
+logger.info("Ini file path: {}".format(ini_file))
+config = configParser.Config(ini_file)
+
 #
 # Set up our Telegram bot
 #
 logger.info("Setting up our Telegram bot...")
-token = args.bot_token
-chat_id = args.chat_id
+token = config.get("telegram_bot_token")
+chat_id = config.get("telegram_chat_id")
 bot = telegram.Bot(token)
 
 try:
@@ -99,13 +105,8 @@ def parse_time(since):
 #
 # Return the username that we're looking for tweets from
 #
-def get_username():
-	ini_file = os.path.dirname(os.path.realpath(__file__)) + "/../config.ini"
-	logger.info("Ini file path: {}".format(ini_file))
-
-	config = configParser.Config(ini_file)
+def get_username(config):
 	user = config.get("twitter_username")
-
 	return(user)
 
 
@@ -259,7 +260,7 @@ def main():
 	logging.info("Message sent!")
 
 
-username = get_username()
+username = get_username(config)
 #username = "dmuth" # Debugging
 logger.info("Reporting on Twitter username: {}".format(username))
 
