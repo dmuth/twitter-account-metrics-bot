@@ -16,6 +16,7 @@ import time
 import webbrowser
 
 import boto3
+import humanize
 import telegram
 import twython
 
@@ -110,13 +111,13 @@ def getTwitterAuthData(config):
 		print ("! ")
 		sys.exit(1)
 
-	retval["final_oauth_token"] = final_step['oauth_token']
-	retval["final_oauth_token_secret"] = final_step['oauth_token_secret']
+	config.set("twitter_final_oauth_token", final_step["oauth_token"])
+	config.set("twitter_final_oauth_token_secret", final_step["oauth_token_secret"])
 
-	logger.info("Final OUATH token: " + retval["final_oauth_token"])
-	logger.info("Final OAUTH token secret: " + retval["final_oauth_token_secret"])
+	logger.info("Final OUATH token: " + config.get("twitter_final_oauth_token"))
+	logger.info("Final OAUTH token secret: " + config.get("twitter_final_oauth_token_secret"))
 
-	retval["twitter_created"] = int(time.time())
+	config.set("twitter_created", int(time.time()))
 
 	return(retval)
 
@@ -143,8 +144,8 @@ def configureTwitter(config):
 	logger.info("Verifying Twitter credentials...")
 	twitter = twython.Twython(config.get("twitter_app_key"), 
 		config.get("twitter_app_secret"), 
-		config.get("final_oauth_token"), 
-		config.get("final_oauth_token_secret"))
+		config.get("twitter_final_oauth_token"), 
+		config.get("twitter_final_oauth_token_secret"))
 
 	creds = twitter.verify_credentials()
 	rate_limit = twitter.get_lastfunction_header('x-rate-limit-remaining')
@@ -168,6 +169,7 @@ def configureAWS(config):
 	if choice:
 		config.get_input("aws_access_key_id", "Enter your AWS Access Key ID")
 		config.get_input("aws_secret_access_key", "Enter your AWS Secret Access Key")
+		config.set("aws_created", int(time.time()))
 		config.write_config()
 		verify = True
 
@@ -200,6 +202,7 @@ def configureTelegram(config):
 	if choice:
 		config.get_input("telegram_bot_token", "Enter your Telegram Bot token")
 		config.get_input("telegram_chat_id", "Enter your Telegram chat ID")
+		config.set("telegram_created", int(time.time()))
 		config.write_config()
 		verify = True
 

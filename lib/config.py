@@ -84,6 +84,13 @@ class Config:
 
 
 	#
+	# Set the value of a specific key.
+	#
+	def set(self, key, value):
+		self.config.set("settings", key, str(value))
+
+
+	#
 	# Return all items with their values in a section as a dictionary.
 	#
 	def get_items(self):
