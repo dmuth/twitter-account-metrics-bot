@@ -8,5 +8,6 @@ set -e
 
 pushd $(dirname $0)/.. > /dev/null
 
-./bin/run-twitter.sh bash
+./bin/run.sh bash
+
 
