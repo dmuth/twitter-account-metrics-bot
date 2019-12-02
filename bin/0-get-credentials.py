@@ -123,12 +123,30 @@ def getTwitterAuthData(config):
 
 
 #
+# Return a string indicating the time difference between now and the timestamp
+# from the key that's passed in, or "Never" if the key isn't found in the config.
+#
+def getLastUpdated(config, key):
+
+	last = config.get(key)
+	if not last:
+		return("Never")
+
+	retval = humanize.naturaltime(time.time() - int(last))
+
+	return(retval)
+
+
+#
 # Optionally configure and verify Twitter credentials
 #
 def configureTwitter(config):
 
 	verify = False
-	choice = config.input_default_yes("Configure Twitter app? (Mandatory)")
+	last_updated = getLastUpdated(config, "twitter_created")
+	choice = config.input_default_yes(
+		"Configure Twitter app? (Mandatory. Last updated: {})".format(
+		last_updated))
 
 	if choice:
 		twitter_data = getTwitterAuthData(config)
@@ -164,7 +182,10 @@ def configureTwitter(config):
 def configureAWS(config):
 
 	verify = False
-	choice = config.input_default_yes("Configure AWS? (optional, used for backups)")
+	last_updated = getLastUpdated(config, "aws_created")
+	choice = config.input_default_yes(
+		"Configure AWS? (Optional, used for backups. Last updated: {})".format(
+		last_updated))
 
 	if choice:
 		config.get_input("aws_access_key_id", "Enter your AWS Access Key ID")
@@ -191,13 +212,17 @@ def configureAWS(config):
 		logger.info("AWS connectivity successful! (Found {} S3 buckets)".format(
 			len(response["Buckets"])))
 
+
 #
 # Optionally configure and verify Telegram credentials
 #
 def configureTelegram(config):
 
 	verify = False
-	choice = config.input_default_yes("Configure Telegram? (optional, used for reporting)")
+	last_updated = getLastUpdated(config, "telegram_created")
+	choice = config.input_default_yes(
+		"Configure Telegram? (Optional, used for reporting. Last updated: {})".format(
+		last_updated))
 
 	if choice:
 		config.get_input("telegram_bot_token", "Enter your Telegram Bot token")

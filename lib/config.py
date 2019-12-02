@@ -80,7 +80,9 @@ class Config:
 	# Return the value of a specific key.
 	#
 	def get(self, key):
-		return(self.config.get("settings", key))
+		if self.config.has_option("settings", key):
+			return(self.config.get("settings", key))
+		return(None)
 
 
 	#
