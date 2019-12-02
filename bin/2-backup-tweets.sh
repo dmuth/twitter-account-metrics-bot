@@ -30,29 +30,24 @@ then
 fi
 
 
-#
-# Check for and copy in our AWS credentials from the host container.
-#
-AWS_CREDS=/mnt/aws-credentials.txt
-if test ! -f $AWS_CREDS
+export AWS_ACCESS_KEY_ID=$(cat /mnt/config.ini | grep aws_access_key_id | cut -d= -f2 | awk '{print $1}')
+export AWS_SECRET_ACCESS_KEY=$(cat /mnt/config.ini | grep aws_secret_access_key | cut -d= -f2 | awk '{print $1}')
+
+if test ! "$AWS_ACCESS_KEY_ID"
 then
 	echo "! "
-	echo "! AWS Credentials not found in $AWS_CREDS!  Stopping."
+	echo "! Unable to load AWS_ACCESS_KEY_ID. Please check your config.ini file."
 	echo "! "
 	exit 1
 fi
 
-cp $AWS_CREDS $HOME/.aws/credentials
-
-AWS_CREDS=$HOME/.aws/credentials
-if test ! -f $AWS_CREDS
+if test ! "$AWS_SECRET_ACCESS_KEY"
 then
 	echo "! "
-	echo "! AWS Credentials not found in $AWS_CREDS!  Stopping."
+	echo "! Unable to load AWS_SECRET_ACCESS_KEY. Please check your config.ini file."
 	echo "! "
 	exit 1
 fi
-
 
 
 echo "# "
