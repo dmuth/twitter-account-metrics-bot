@@ -6,7 +6,7 @@ services:
   1-fetch-tweets:
     build:
       context: .
-      dockerfile: "bin/Dockerfile-twitter"
+      dockerfile: "bin/Dockerfile"
     restart: "always"
     privileged: true
     volumes:
@@ -16,7 +16,7 @@ services:
   2-telegram-bot:
     build:
       context: .
-      dockerfile: "bin/Dockerfile-telegram"
+      dockerfile: "bin/Dockerfile"
     restart: "always"
     privileged: true
     volumes:
@@ -28,25 +28,17 @@ services:
     # Report every 6 hours on the last day's worth of tweets.
     #
     command: 2-telegram-bot --since "1_days_ago" --interval 21600
-    environment:
-      #
-      # Replace these with your Telegram chat ID and token
-      #
-      - TELEGRAM_CHAT_ID=
-      - TELEGRAM_TOKEN=
 
   2-backup-tweets:
     build:
       context: .
-      dockerfile: "bin/Dockerfile-twitter"
+      dockerfile: "bin/Dockerfile"
     restart: "always"
     privileged: true
     volumes:
       - .:/mnt
     #
-    # A word of caution: the S3 base path *MUST* end in a slash.  This is because
-    # slashes in S3 aren't really directory separators, but just part of the key, and
-    # that means S3 is quite unforgiving if there is no trailing slash or two slashes next to each other.
+    # Keep 10 backups, and wait 900 seconds between runs.
     #
-    command: 2-backup-tweets s3://FIXME/ 10 900
+    command: 2-backup-tweets 10 900
 
