@@ -13,6 +13,7 @@ import logging.config
 import os
 import sys
 import time
+from urllib.parse import urlparse
 import webbrowser
 
 import boto3
@@ -190,6 +191,12 @@ def configureAWS(config):
 	if choice:
 		config.get_input("aws_access_key_id", "Enter your AWS Access Key ID")
 		config.get_input("aws_secret_access_key", "Enter your AWS Secret Access Key")
+		config.get_input("aws_s3_bucket", "Enter your AWS S3 bucket path. It MUST have a trailing slash!")
+		s3 = config.get("aws_s3_bucket")
+		if s3[len(s3) - 1] != "/":
+			raise Exception(
+				"What did I tell you? The S3 path '{}' needs to end with a slash!".format(
+				s3))
 		config.set("aws_created", int(time.time()))
 		config.write_config()
 		verify = True
@@ -206,11 +213,10 @@ def configureAWS(config):
 		aws_access_key_id = config.get("aws_access_key_id"),
 		aws_secret_access_key = config.get("aws_secret_access_key")
 		)
-	response = s3.list_buckets()
-
-	if response["ResponseMetadata"]:
-		logger.info("AWS connectivity successful! (Found {} S3 buckets)".format(
-			len(response["Buckets"])))
+	s3_parts = urlparse(config.get("aws_s3_bucket"))
+	response = s3.list_objects(Bucket = s3_parts.netloc, Prefix = s3_parts.path)
+	
+	logger.info("Verified!")
 
 
 #
@@ -257,6 +263,9 @@ def main(args):
 	logger.info("Ini file path: {}".format(ini_file))
 
 	config = configParser.Config(ini_file)
+
+# TEST
+	configureAWS(config)
 
 	configureTwitter(config)
 	configureAWS(config)

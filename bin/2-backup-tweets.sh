@@ -9,27 +9,26 @@ set -e
 NUM_TO_KEEP=20
 LOOP_SECONDS=900
 
-if test ! "$1"
+if test "$1" == "-h" -o "$1" == "--help"
 then
 	echo "! "
-	echo "! Syntax: $0 s3_bucket [ num_backups_to_keep ] [ seconds_to_wait_between_loops ]"
+	echo "! Syntax: $0 [ num_backups_to_keep ] [ seconds_to_wait_between_loops ]"
 	echo "! "
 	exit 1
 fi
 
-S3=$1
+if test "$1"
+then
+	NUM_TO_KEEP=$1
+fi
 
 if test "$2"
 then
-	NUM_TO_KEEP=$2
-fi
-
-if test "$3"
-then
-	LOOP_SECONDS=$3
+	LOOP_SECONDS=$2
 fi
 
 
+export S3=$(cat /mnt/config.ini | grep aws_s3_bucket | cut -d= -f2 | awk '{ print $1 }')
 export AWS_ACCESS_KEY_ID=$(cat /mnt/config.ini | grep aws_access_key_id | cut -d= -f2 | awk '{print $1}')
 export AWS_SECRET_ACCESS_KEY=$(cat /mnt/config.ini | grep aws_secret_access_key | cut -d= -f2 | awk '{print $1}')
 
