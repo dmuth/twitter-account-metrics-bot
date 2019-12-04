@@ -52,6 +52,13 @@ From <a href="https://stackoverflow.com/a/45577773/196073">https://stackoverflow
 - Send Your Message to group. e.g. `bot.send_message(-154513121, "Hi")`
 
 
+## Architecture: Why A Single Docker Container?
+
+In a past version of this app, I used to have 5 different development and run scripts spread across 4 different Docker containers, and the end result is that the `bin/` directory got  *really* unruly, holding 30 files in total, many of them very nearly identical to multiple other files.
+
+I made the conscious decision to merge 4 slightly different Dockerfiles together into a single Dockerfile.  While the single image is a bit on the large side (347 MB), I reduced the total number of files in `bin/` from 30 down to 13 *and* made my overall development and usage process simpler than it was before.  In fact, with the exception of this particular section, this entire README got _shorter_ sa a result.  I think I made a good decision here. :-)
+
+
 # Credits
 
 - <a href="https://twython.readthedocs.io/en/latest/">Twython</a> - The Twitter client for Python, this made using Twitter's API a breeze.
