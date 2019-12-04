@@ -8,6 +8,6 @@ set -e
 
 pushd $(dirname $0)/.. > /dev/null
 
-DEVEL=1 ./bin/run-0-get-credentials.sh $@
+./bin/run.sh bash
 
 

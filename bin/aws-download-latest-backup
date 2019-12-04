@@ -8,19 +8,29 @@
 # Errors are fatal
 set -e
 
+if test ! "$1"
+then
+	echo "! "
+	echo "! Syntax: $0 s3_path"
+	echo "! "
+	exit 1
+fi
+
 AWS=$(dirname $0)/aws
-CMD=$(dirname $0)/aws-get-s3-dir
+S3=$1
+CMD="aws s3 ls ${S3}"
 
 #
 # Grab the most recent file
 #
 FILE=$($CMD |tail -n1 | awk '{ print $4 }')
+FILE="${S3}${FILE}"
 
 echo "# " >&2
 echo "# Downloading '${FILE}..." >&2
 echo "# " >&2
 
-$AWS s3 cp $FILE .
+aws s3 cp $FILE .
 
 echo "# Done!" >&2
 

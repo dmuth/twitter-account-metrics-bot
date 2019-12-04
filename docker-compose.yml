@@ -1,0 +1,44 @@
+
+version: "3"
+
+services:
+
+  1-fetch-tweets:
+    build:
+      context: .
+      dockerfile: "bin/Dockerfile"
+    restart: "always"
+    privileged: true
+    volumes:
+      - .:/mnt
+    command: 1-fetch-tweets --num 1000 --loop 300
+
+  2-telegram-bot:
+    build:
+      context: .
+      dockerfile: "bin/Dockerfile"
+    restart: "always"
+    privileged: true
+    volumes:
+      - .:/mnt
+    #
+    # I can't believe underscores work in the --since param, but if it
+    # keeps Docker from splitting up the string, great!
+    #
+    # Report every 6 hours on the last day's worth of tweets.
+    #
+    command: 2-telegram-bot --since "1_days_ago" --interval 21600
+
+  2-backup-tweets:
+    build:
+      context: .
+      dockerfile: "bin/Dockerfile"
+    restart: "always"
+    privileged: true
+    volumes:
+      - .:/mnt
+    #
+    # Keep 10 backups, and wait 900 seconds between runs.
+    #
+    command: 2-backup-tweets 10 900
+

@@ -19,7 +19,8 @@ from sqlalchemy.sql.expression import func
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
 sys.path.append("lib")
-from tables import create_all, get_session, Config, Tweets
+from tables import create_all, get_session, Tweets
+import config as configParser
 import telegram
 
 
@@ -45,13 +46,29 @@ else:
 
 logger.info("Args: {}".format(args))
 
+
+#
+# Load our config.ini file
+#
+ini_file = os.path.dirname(os.path.realpath(__file__)) + "/../config.ini"
+logger.info("Ini file path: {}".format(ini_file))
+config = configParser.Config(ini_file)
+
 #
 # Set up our Telegram bot
 #
 logger.info("Setting up our Telegram bot...")
-token = os.environ["TELEGRAM_TOKEN"]
-chat_id = os.environ["TELEGRAM_CHAT_ID"]
+token = config.get("telegram_bot_token")
+chat_id = config.get("telegram_chat_id")
 bot = telegram.Bot(token)
+
+try:
+	logger.info("Testing access to Telegram...")
+	update_id = bot.get_updates()[0].update_id
+except IndexError:
+	pass
+
+logger.info("We can access Telegram!")
 
 
 #
@@ -88,9 +105,9 @@ def parse_time(since):
 #
 # Return the username that we're looking for tweets from
 #
-def get_username():
-	row = session.query(Config).filter(Config.name == "twitter_username").one()
-	return(row.value)
+def get_username(config):
+	user = config.get("twitter_username")
+	return(user)
 
 
 #
@@ -243,7 +260,7 @@ def main():
 	logging.info("Message sent!")
 
 
-username = get_username()
+username = get_username(config)
 #username = "dmuth" # Debugging
 logger.info("Reporting on Twitter username: {}".format(username))
 

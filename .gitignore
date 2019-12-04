@@ -11,11 +11,8 @@ tweets.db
 
 __pycache__
 
-aws-credentials.txt
-
 #
 # Production files that we should never check in.
 #
-bin/dev-set-telegram-env.sh
-docker-compose.yml
+config.ini
 

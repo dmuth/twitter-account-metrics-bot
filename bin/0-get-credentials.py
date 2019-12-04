@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # :set softtabstop=8 noexpandtab
 #
-# Get our Twitter credentials
+# Get our Twitter credentials and store them in an ini file
 #
 
 
@@ -10,20 +10,25 @@ import datetime
 import json
 import logging as logger
 import logging.config
+import os
 import sys
 import time
+from urllib.parse import urlparse
 import webbrowser
 
-import dateutil.parser
+import boto3
+import humanize
+import telegram
 import twython
 
+
 sys.path.append("lib")
-from tables import create_all, get_session, Config 
+import config as configParser
 
 #
 # Parse our arguments
 #
-parser = argparse.ArgumentParser(description = "Get app credentials from Twitter")
+parser = argparse.ArgumentParser(description = "Get Twitter app credentials and store them in an INI file")
 parser.add_argument("--debug", action = "store_true")
 args = parser.parse_args()
 
@@ -35,69 +40,13 @@ if args.debug:
 else:
 	logging.basicConfig(level=logging.INFO, format='%(asctime)s: %(levelname)s: %(message)s')
 
-#
-# Connect to the database
-#
-session = get_session()
-
 
 #
-# Prompt the user for input and upsert into the data, showing 
-# the default value if it's already in the database.
-#
-# session - The database session
-# name - The name of the field from the table
-# input_string - Base input string to show the user (default may be filled in)
-#
-# Returns the value that the user entered
-#
-def get_input(session, name, input_string):
-
-	#
-	# See if the row exists
-	#
-	row = session.query(Config).filter(Config.name == name).first()
-
-	if row:
-		input_string += " [{}]: ".format(row.value)
-	else:
-		input_string += ": "
-
-	value = input(input_string)
-
-	#
-	# If the user hit enter, use the default value!
-	#
-	if not value:
-		if row:
-			value = row.value
-		else:
-			raise Exception("You must enter a value!")
-
-	#
-	# Save what we did
-	#
-	if not row:
-		row = Config(name = name, value = value)
-	else:
-		row.value = value
-
-	session.add(row)
-	session.commit()
-
-	return(value)
-
-
-
-#
-# Fetch our data from the database.  If we don't have any data, then
-# go through the process of getting auth tokens, which is a somewhat involved
-# process which also includes opening up a web browser window. (ugh)
+# Prompt the user to enter Twitter data, using what we have for defaults.
 #
 # @return dict A dictionary with our credentials
-# @return object A SQLite object representing the row
 #
-def getTwitterAuthData():
+def getTwitterAuthData(config):
 
 	retval = {}
 
@@ -117,15 +66,15 @@ def getTwitterAuthData():
 	print("# ")
 
 
-	retval["app_key"] = get_input(session, "twitter_app_key", 
+	retval["twitter_app_key"] = config.get_input("twitter_app_key", 
 		"Enter your Consumer API Key here")
-	retval["app_secret"] = get_input(session, "twitter_app_secret", 
+	retval["twitter_app_secret"] = config.get_input("twitter_app_secret", 
 		"Enter your Consumer API Secret Key here")
 
-	retval["twitter_username"] = get_input(session, "twitter_username", 
+	retval["twitter_username"] = config.get_input("twitter_username", 
 		"Username you want to get Tweet stats on")
 
-	twitter = twython.Twython(retval["app_key"], retval["app_secret"])
+	twitter = twython.Twython(retval["twitter_app_key"], retval["twitter_app_secret"])
 	auth = twitter.get_authentication_tokens()
 
 	auth_url = auth["auth_url"]
@@ -137,7 +86,7 @@ def getTwitterAuthData():
 	print("# ")
 	print("# ")
 	print("# ")
-	print("# Please open this URL to get your PIN:")
+	print("# Please open this URL in your browser, click \"Authorize\", and get your PIN:")
 	print("# ")
 	print("# {}".format(auth_url))
 	print("# ")
@@ -149,7 +98,7 @@ def getTwitterAuthData():
 	logger.info("OAUTH Token: " + oauth_token)
 	logger.info("OAUTH Token Secret: " + oauth_token_secret)
 
-	twitter = twython.Twython(retval["app_key"], retval["app_secret"], 
+	twitter = twython.Twython(retval["twitter_app_key"], retval["twitter_app_secret"], 
 		oauth_token, oauth_token_secret)
 
 	try:
@@ -163,45 +112,59 @@ def getTwitterAuthData():
 		print ("! ")
 		sys.exit(1)
 
-	retval["final_oauth_token"] = final_step['oauth_token']
-	retval["final_oauth_token_secret"] = final_step['oauth_token_secret']
+	config.set("twitter_final_oauth_token", final_step["oauth_token"])
+	config.set("twitter_final_oauth_token_secret", final_step["oauth_token_secret"])
 
-	#
-	# Remove and save our final oauth tokens
-	#
-	session.query(Config).filter(Config.name == "twitter_final_oauth_token").delete()
-	session.query(Config).filter(Config.name == "twitter_final_oauth_token_secret").delete()
-	row = Config(name = "twitter_final_oauth_token", value = retval["final_oauth_token"])
-	session.add(row)
-	row = Config(name = "twitter_final_oauth_token_secret", value = 
-		retval["final_oauth_token_secret"])
-	session.add(row)
-	session.commit()
+	logger.info("Final OUATH token: " + config.get("twitter_final_oauth_token"))
+	logger.info("Final OAUTH token secret: " + config.get("twitter_final_oauth_token_secret"))
 
-	logger.info("Final OUATH token: " + retval["final_oauth_token"])
-	logger.info("Final OAUTH token secret: " + retval["final_oauth_token_secret"])
-
-	retval["created"] = int(time.time())
+	config.set("twitter_created", int(time.time()))
 
 	return(retval)
 
 
 #
-# Our main function.
+# Return a string indicating the time difference between now and the timestamp
+# from the key that's passed in, or "Never" if the key isn't found in the config.
 #
-def main(args):
+def getLastUpdated(config, key):
 
-	#
-	# Create our data object for writing to the data table.
-	#
-	twitter_data = getTwitterAuthData()
+	last = config.get(key)
+	if not last:
+		return("Never")
+
+	retval = humanize.naturaltime(time.time() - int(last))
+
+	return(retval)
 
 
-	#
-	# Verify our Twitter credentials
-	#
-	twitter = twython.Twython(twitter_data["app_key"], twitter_data["app_secret"], 
-		twitter_data["final_oauth_token"], twitter_data["final_oauth_token_secret"])
+#
+# Optionally configure and verify Twitter credentials
+#
+def configureTwitter(config):
+
+	verify = False
+	last_updated = getLastUpdated(config, "twitter_created")
+	choice = config.input_default_yes(
+		"Configure Twitter app? (Mandatory. Last updated: {})".format(
+		last_updated))
+
+	if choice:
+		twitter_data = getTwitterAuthData(config)
+		config.write_config()
+		verify = True
+
+	if not verify:
+		verify = config.input_default_yes("Verify Twitter credentials?")
+
+	if not verify:
+		return
+
+	logger.info("Verifying Twitter credentials...")
+	twitter = twython.Twython(config.get("twitter_app_key"), 
+		config.get("twitter_app_secret"), 
+		config.get("twitter_final_oauth_token"), 
+		config.get("twitter_final_oauth_token_secret"))
 
 	creds = twitter.verify_credentials()
 	rate_limit = twitter.get_lastfunction_header('x-rate-limit-remaining')
@@ -212,6 +175,98 @@ def main(args):
 	#
 	screen_name = creds["screen_name"]
 	logger.info("My screen name is: " + screen_name)
+
+
+#
+# Optionally configure and verify AWS credentials.
+#
+def configureAWS(config):
+
+	verify = False
+	last_updated = getLastUpdated(config, "aws_created")
+	choice = config.input_default_yes(
+		"Configure AWS? (Optional, used for backups. Last updated: {})".format(
+		last_updated))
+
+	if choice:
+		config.get_input("aws_access_key_id", "Enter your AWS Access Key ID")
+		config.get_input("aws_secret_access_key", "Enter your AWS Secret Access Key")
+		config.get_input("aws_s3_bucket", "Enter your AWS S3 bucket path. It MUST have a trailing slash!")
+		s3 = config.get("aws_s3_bucket")
+		if s3[len(s3) - 1] != "/":
+			raise Exception(
+				"What did I tell you? The S3 path '{}' needs to end with a slash!".format(
+				s3))
+		config.set("aws_created", int(time.time()))
+		config.write_config()
+		verify = True
+
+	if not verify:
+		verify = config.input_default_yes("Verify AWS credentials?")
+
+	if not verify:
+		return
+
+	logger.info("Verifying AWS credentials...")
+
+	s3 = boto3.client("s3",
+		aws_access_key_id = config.get("aws_access_key_id"),
+		aws_secret_access_key = config.get("aws_secret_access_key")
+		)
+	s3_parts = urlparse(config.get("aws_s3_bucket"))
+	response = s3.list_objects(Bucket = s3_parts.netloc, Prefix = s3_parts.path)
+	
+	logger.info("Verified!")
+
+
+#
+# Optionally configure and verify Telegram credentials
+#
+def configureTelegram(config):
+
+	verify = False
+	last_updated = getLastUpdated(config, "telegram_created")
+	choice = config.input_default_yes(
+		"Configure Telegram? (Optional, used for reporting. Last updated: {})".format(
+		last_updated))
+
+	if choice:
+		config.get_input("telegram_bot_token", "Enter your Telegram Bot token")
+		config.get_input("telegram_chat_id", "Enter your Telegram chat ID")
+		config.set("telegram_created", int(time.time()))
+		config.write_config()
+		verify = True
+
+	if not verify:
+		verify = config.input_default_yes("Verify Telegram credentials?")
+
+	if not verify:
+		return
+
+	bot = telegram.Bot(config.get("telegram_bot_token"))
+
+	try:
+		logger.info("Testing access to Telegram...")
+		update_id = bot.get_updates()[0].update_id
+	except IndexError:
+		pass
+
+	logger.info("We can access Telegram!")
+
+
+#
+# Our main function.
+#
+def main(args):
+
+	ini_file = os.path.dirname(os.path.realpath(__file__)) + "/../config.ini"
+	logger.info("Ini file path: {}".format(ini_file))
+
+	config = configParser.Config(ini_file)
+
+	configureTwitter(config)
+	configureAWS(config)
+	configureTelegram(config)
 
 
 main(args)

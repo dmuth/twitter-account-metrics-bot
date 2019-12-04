@@ -5,6 +5,8 @@ An app to get metrics from Twitter accounts and report them to Telegram via a bo
 
 <img src="./img/statistics.png" width="150" align="right" />
 
+This is useful for monitoring activity on organization social media accounts.
+
 
 ## Requirements
 
@@ -20,27 +22,23 @@ An app to get metrics from Twitter accounts and report them to Telegram via a bo
 ## Setup
 
 - Clone this repo to your machine
-- Run `./bin/run-0-get-credentials.sh` to configure your app.  You'll need to type in those two API values, the username you want to monitor, and then you'll be given a URL to connect to Twitter and get a PIN.
-- Optional: Have an AWS account, copy `aws-credentials.txt.example` to `aws-credentials.txt` and fill in the credentials.  This will allow database backups to be made
-- Copy `docker-compose.yml.example` to `docker-compose.yml` and enter in your Telegram Token and Chat ID.
-- Run `./bin/run-1-fetch-tweets.sh --num 5000` to fetch as many tweets as possible.  This will prime the database, as future runs involve 
-- Now run `docker-compose up -d` and tweets will start being downloaded with stats being written to the Telegram Channel of your user.  This is useful for monitoring activity on organization social media accounts.
-
-
-## Exporting Saved Tweets
-
-The command ` ./bin/run-1-export-to-json.sh` will dump all tweets to `tweets.json`.
+- Run `./bin/run.sh 0-get-credentials` to configure the app.  You'll need your Twiter API data, and (optionally) AWS and Telegram credentials as well.
+   - AWS credentials can be obtained from the AWS console and is beyond the scope of this document.
+   - Telegram credentials can be obtained from <a href="https://telegram.me/BotFather">messaging BotFather</a> and following the instructions.
+- Manual usage:
+   - Run `./bin/run.sh 1-fetch-tweets` to fetch tweets and store them to `tweets.db`, which is a SQLite database.
+   - Run `./bin/run.sh 1-export-to-json` to export all tweets to `tweets.json`.
+   - Run `./bin/run.sh 2-telegram-bot` to start reporting tweet stats to Telegram
+   - Run `./bin/run.sh 2-backup-tweets` to start a script that periodically backs up the `tweets.db` file to AWS S3.
+- Normal usage:
+   - Run `docker-compose up -d` and tweets will start being downloaded with stats being written to the Telegram Channel of your user.  
 
 
 ## Development
 
-- To work on a script interactively, there are dev scripts which will spawn a shell in Docker with the script to be found in `/mnt/bin/`:
-   - `./bin/dev-0-get-credentials.sh`
-   - `./bin/dev-1-fetch-tweets.sh`
-   - `./bin/dev-2-telegram-bot.sh`
-   - `./bin/dev-2-backup.sh`
-- To set environment variables for testing the Telegram bot, copy `bin/`dev-set-telegram-env.sh.EXAMPLE` to `bin/dev-set-telegram-env.sh`, edit the variables, and run `. dev-set-telegram-env.sh` to set them in your shell.
-- To view your backup directory: `./bin/aws/get-s3-dir`
+- To work on a script interactively:
+   - `./bin/dev.sh` - This will launch the container with an interactive shell.
+   - Scripts live in `/mnt/bin/` on this container.
 - To download the latest backup: `./bin/aws/download-latest-backup`
 
 
@@ -52,6 +50,13 @@ From <a href="https://stackoverflow.com/a/45577773/196073">https://stackoverflow
 - Go to your group in <a href="https://web.telegram.org/">the web interface</a> and grab the link. e.g. https://web.telegram.org/#/im?p=g154513121
 - Copy That number after g and put a (-) Before That. e.g. -154513121
 - Send Your Message to group. e.g. `bot.send_message(-154513121, "Hi")`
+
+
+## Architecture: Why A Single Docker Container?
+
+In a past version of this app, I used to have 5 different development and run scripts spread across 4 different Docker containers, and the end result is that the `bin/` directory got  *really* unruly, holding 30 files in total, many of them very nearly identical to multiple other files.
+
+I made the conscious decision to merge 4 slightly different Dockerfiles together into a single Dockerfile.  While the single image is a bit on the large side (347 MB), I reduced the total number of files in `bin/` from 30 down to 13 *and* made my overall development and usage process simpler than it was before.  In fact, with the exception of this particular section, this entire README got _shorter_ sa a result.  I think I made a good decision here. :-)
 
 
 # Credits
